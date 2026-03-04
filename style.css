@@ -1,0 +1,345 @@
+:root {
+    /* Lego Color Palette */
+    --lego-red: #980008;
+    --lego-blue: #0055BF;
+    --lego-yellow: #fca416;
+    --lego-green: #237841;
+    --lego-white: #FFFFFF;
+    --lego-black: #111111;
+    --lego-gray: #F4F4F4;
+
+    /* Theme Mapping */
+    --bg-color: var(--lego-gray);
+    --sidebar-bg: var(--lego-white);
+    --text-primary: var(--lego-black);
+    --text-secondary: #555555;
+
+    --accent-color: var(--lego-blue);
+    /* Links, interactive elements */
+    --accent-hover: var(--lego-red);
+    /* Hover states */
+    --highlight-color: var(--lego-yellow);
+    /* Active states, emphasis */
+
+    --border-color: #000000;
+    --border-width: 3px;
+    --border-radius: 6px;
+
+    --shadow-hard: 4px 4px 0px rgba(0, 0, 0, 1);
+
+    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar Styling */
+aside {
+    width: 280px;
+    background-color: var(--sidebar-bg);
+    border-right: var(--border-width) solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+    z-index: 100;
+}
+
+aside h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    color: var(--lego-red);
+    letter-spacing: -0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+}
+
+aside h1 span {
+    background-color: var(--lego-yellow);
+    padding: 0.2rem;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 2px 2px 0px black;
+}
+
+aside nav ul {
+    list-style: none;
+}
+
+aside nav li {
+    margin-bottom: 0.8rem;
+}
+
+/* Collapsible Details */
+details {
+    margin-bottom: 0.5rem;
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+details[open] {
+    box-shadow: 1px 1px 0px rgba(0, 0, 0, 1);
+    transform: translate(2px, 2px);
+}
+
+summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--lego-white);
+}
+
+summary:hover {
+    background-color: var(--lego-yellow);
+}
+
+summary::after {
+    content: '+';
+    font-family: var(--font-mono);
+    font-weight: bold;
+    font-size: 1.2em;
+    transition: transform 0.2s;
+}
+
+details[open]>summary::after {
+    transform: rotate(45deg);
+}
+
+details[open]>summary {
+    border-bottom: 2px solid var(--border-color);
+    background-color: var(--lego-yellow);
+}
+
+/* Nested Links */
+details ul {
+    margin: 0;
+    padding: 0.5rem;
+    background-color: #fff;
+    border-top: none;
+}
+
+a.nav-link {
+    display: block;
+    text-decoration: none;
+    padding: 0.6rem 0.75rem;
+    color: var(--text-primary);
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: 2px solid transparent;
+    transition: all 0.1s;
+    margin-bottom: 4px;
+}
+
+a.nav-link:hover {
+    background-color: var(--lego-blue);
+    color: white;
+    border-color: black;
+    transform: translateY(-2px);
+    box-shadow: 2px 2px 0px black;
+}
+
+a.nav-link.active {
+    background-color: var(--lego-red);
+    color: white;
+    border: 2px solid black;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+    font-weight: 700;
+}
+
+/* Main Content Area */
+main {
+    flex: 1;
+    padding: 2rem 4rem;
+    overflow-y: auto;
+    position: relative;
+    scroll-behavior: smooth;
+    background-image: radial-gradient(var(--text-secondary) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-color: #fafafa;
+}
+
+/* Article Styling */
+.content-area {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    padding: 3rem;
+    border: 3px solid black;
+    border-radius: var(--border-radius);
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 1);
+    animation: slideUp 0.4s ease-out;
+}
+
+.content-area h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+    color: var(--lego-red);
+    border-bottom: 4px solid var(--lego-yellow);
+    padding-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+}
+
+.content-area h2 {
+    font-size: 1.8rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--lego-blue);
+    display: inline-block;
+    border-bottom: 3px solid black;
+    padding-right: 1rem;
+}
+
+.content-area p {
+    line-height: 2.0;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-size: 1.05rem;
+}
+
+.content-area ul,
+.content-area ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+
+.content-area li {
+    margin-bottom: 0.8rem;
+    line-height: 1.8;
+    color: #333;
+}
+
+.content-area code {
+    background-color: var(--lego-gray);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    color: var(--lego-red);
+    border: 1px solid #ddd;
+    font-weight: bold;
+}
+
+.content-area pre {
+    background-color: #1e1e1e;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+    border: 3px solid black;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.content-area pre::before {
+    content: 'CODE';
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--lego-yellow);
+    color: black;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 0.2rem 0.5rem;
+    border-bottom-left-radius: 4px;
+    border-left: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+.content-area pre code {
+    background-color: transparent;
+    padding: 0;
+    color: #e2e8f0;
+    border: none;
+    font-weight: normal;
+}
+
+/* Mobile Toggle */
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 200;
+    background: var(--lego-yellow);
+    border: 2px solid black;
+    color: black;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    box-shadow: 2px 2px 0px black;
+    font-weight: bold;
+}
+
+.menu-toggle:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+/* Animations */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    aside {
+        position: fixed;
+        height: 100%;
+        transform: translateX(-100%);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    aside.open {
+        transform: translateX(0);
+    }
+
+    main {
+        padding: 1rem;
+        background-size: 10px 10px;
+    }
+
+    .content-area {
+        padding: 1.5rem;
+        border-width: 2px;
+        box-shadow: 4px 4px 0px black;
+    }
+}

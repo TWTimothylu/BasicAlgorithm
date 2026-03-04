@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APCS 演算法學習網</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code&display=swap"
+        rel="stylesheet">
+
+    <!-- MathJax for LaTeX support -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+    <!-- Prism.js for Syntax Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+</head>
+
+<body>
+
+    <!-- Mobile Menu Button -->
+    <button class="menu-toggle" id="menu-toggle">☰</button>
+
+    <!-- Sidebar -->
+    <aside>
+        <h1>
+            <span>⚡</span> APCS Algo
+        </h1>
+        <nav>
+            <ul>
+                <li>
+                    <a href="content/intro.html" class="nav-link active">簡介 (Introduction)</a>
+                </li>
+
+                <!-- 1. 基礎運算與搜尋 -->
+                <li>
+                    <details>
+                        <summary>1. 基礎運算與搜尋</summary>
+                        <ul>
+                            <li><a href="content/ch1/linear_search.html" class="nav-link">線性搜尋</a></li>
+                            <li><a href="content/ch1/binary_search.html" class="nav-link">二元搜尋</a></li>
+                            <li><a href="content/ch1/gcd_lcm.html" class="nav-link">GCD / LCM</a></li>
+                            <li><a href="content/ch1/prime.html" class="nav-link">質數 / 篩法</a></li>
+                            <li><a href="content/ch1/permutation.html" class="nav-link">排列組合</a></li>
+                        </ul>
+                    </details>
+                </li>
+
+                <!-- 2. 排序演算法 -->
+                <li>
+                    <details>
+                        <summary>2. 排序演算法</summary>
+                        <ul>
+                            <li><a href="content/ch2/bubble_sort.html" class="nav-link">氣泡排序</a></li>
+                            <li><a href="content/ch2/selection_sort.html" class="nav-link">選擇排序</a></li>
+                            <li><a href="content/ch2/insertion_sort.html" class="nav-link">插入排序</a></li>
+                            <li><a href="content/ch2/merge_sort.html" class="nav-link">合併排序</a></li>
+                            <li><a href="content/ch2/quick_sort.html" class="nav-link">快速排序</a></li>
+                            <li><a href="content/ch2/heap_sort.html" class="nav-link">堆積排序</a></li>
+                        </ul>
+                    </details>
+                </li>
+
+                <!-- 3. 演算法策略 -->
+                <li>
+                    <details>
+                        <summary>3. 演算法策略</summary>
+                        <ul>
+                            <li><a href="content/ch3/recursion.html" class="nav-link">遞迴 (Recursion)</a></li>
+                            <li><a href="content/ch3/divide_conquer.html" class="nav-link">分治法</a></li>
+                            <li><a href="content/ch3/greedy.html" class="nav-link">貪婪演算法</a></li>
+                            <li><a href="content/ch3/dp_1d.html" class="nav-link">一維 DP</a></li>
+                            <li><a href="content/ch3/dp_2d.html" class="nav-link">二維 DP</a></li>
+                            <li><a href="content/ch3/lis.html" class="nav-link">LIS 最長遞增子序列</a></li>
+                            <li><a href="content/ch3/backtracking.html" class="nav-link">回溯法 (Backtracking)</a></li>
+                        </ul>
+                    </details>
+                </li>
+
+                <!-- 4. 資料結構 -->
+                <li>
+                    <details>
+                        <summary>4. 資料結構</summary>
+                        <ul>
+                            <li><a href="content/ch4/stack_queue.html" class="nav-link">堆疊 / 佇列</a></li>
+                            <li><a href="content/ch4/linked_list.html" class="nav-link">鏈結串列</a></li>
+                            <li><a href="content/ch4/tree_traversal.html" class="nav-link">二元樹走訪</a></li>
+                            <li><a href="content/ch4/bst.html" class="nav-link">二元搜尋樹 (BST)</a></li>
+                            <li><a href="content/ch4/tree_algo.html" class="nav-link">樹的應用</a></li>
+                            <li><a href="content/ch4/dsu.html" class="nav-link">並查集 (DSU)</a></li>
+                        </ul>
+                    </details>
+                </li>
+
+                <!-- 5. 圖論演算法 -->
+                <li>
+                    <details>
+                        <summary>5. 圖論演算法</summary>
+                        <ul>
+                            <li><a href="content/ch5/graph_traversal.html" class="nav-link">圖的走訪 (DFS/BFS)</a></li>
+                            <li><a href="content/ch5/shortest_path.html" class="nav-link">最短路徑</a></li>
+                            <li><a href="content/ch5/mst.html" class="nav-link">最小生成樹 (MST)</a></li>
+                        </ul>
+                    </details>
+                </li>
+
+                <!-- 6. 字串處理 -->
+                <li>
+                    <details>
+                        <summary>6. 字串處理</summary>
+                        <ul>
+                            <li><a href="content/ch6/string_basic.html" class="nav-link">基礎操作</a></li>
+                            <li><a href="content/ch6/kmp.html" class="nav-link">KMP 演算法</a></li>
+                        </ul>
+                    </details>
+                </li>
+
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Default Content -->
+        <div class="content-area">
+            <h1>歡迎來到 APCS 演算法學習網</h1>
+            <p>請從左側目錄選擇一個主題開始學習。</p>
+            <p>本網站支援互動式範例與動畫演示。</p>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+</body>
+
+</html>

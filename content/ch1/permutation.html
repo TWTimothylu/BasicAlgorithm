@@ -1,0 +1,147 @@
+<div class="content-area">
+    <h1>排列組合 (Permutations & Combinations) 演算法教學</h1>
+
+    <h2>1. 簡介</h2>
+    <ul>
+        <li><strong>排列 (Permutation)</strong>：從 $n$ 個不同元素中取出 $k$ 個元素進行排列，<strong>講究順序</strong>。</li>
+        <li><strong>組合 (Combination)</strong>：從 $n$ 個不同元素中取出 $k$ 個元素組成集合，<strong>不講究順序</strong>。</li>
+    </ul>
+    <p>在程式競賽中，計算排列組合數值通常涉及<strong>階乘 (Factorial)</strong> 運算，而列舉所有排列或組合則需要使用<strong>遞迴 (Recursion)</strong> 或
+        <strong>回溯法 (Backtracking)</strong>。</p>
+
+    <h2>2. 生活案例比喻</h2>
+    <ul>
+        <li><strong>排列 (Order Matters) - 密碼鎖</strong>：
+            <ul>
+                <li>假設密碼鎖有 3 個位置，你要從 0-9 選出 3 個數字當密碼。</li>
+                <li>選出的數字是 1, 2, 3。</li>
+                <li>「123」和「321」是<strong>不同</strong>的密碼。因為順序很重要，這就是「排列」。</li>
+            </ul>
+        </li>
+        <li><strong>組合 (Order Doesn't Matter) - 樂透彩 / 珍珠奶茶配料</strong>：
+            <ul>
+                <li>你要從珍珠、椰果、布丁中選 2 種加料。</li>
+                <li>選「珍珠+布丁」和選「布丁+珍珠」拿到的是<strong>同一杯</strong>飲料。</li>
+                <li>因為順序不重要，這就是「組合」。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>3. 公式與運算</h2>
+
+    <h3>A. 階乘 (Factorial)</h3>
+    <ul>
+        <li>定義：$n! = n \times (n-1) \times \dots \times 1$。特別定義 $0! = 1$。</li>
+    </ul>
+
+    <h3>B. 排列公式 $P(n, k)$ 或 $P^n_k$</h3>
+    <ul>
+        <li>從 $n$ 個取 $k$ 個排隊的方法數。</li>
+        <li>公式：$P(n, k) = \frac{n!}{(n-k)!}$</li>
+    </ul>
+
+    <h3>C. 組合公式 $C(n, k)$ 或 $\binom{n}{k}$</h3>
+    <ul>
+        <li>從 $n$ 個取 $k$ 個成一組的方法數。</li>
+        <li>公式：$C(n, k) = \frac{P(n, k)}{k!} = \frac{n!}{k!(n-k)!}$</li>
+        <li>常用性質：$C(n, k) = C(n, n-k)$ (選 $k$ 個留下來，等於選 $n-k$ 個丟掉)。</li>
+    </ul>
+
+    <h2>4. 程式碼實作</h2>
+
+    <h3>Python 實作範例</h3>
+    <p>Python 的 <code>math</code> 模組已內建高效函式，但在 APCS 第 3、4 題中，常需要手寫遞迴來<strong>列出</strong>所有情況（而不只是計算數量）。</p>
+
+    <pre><code class="language-python">import math
+import itertools
+
+# --- 1. 計算數值 (使用內建函式) ---
+n, k = 5, 3
+print(f"P({n}, {k}) = {math.perm(n, k)}")  # 排列數: 60
+print(f"C({n}, {k}) = {math.comb(n, k)}")  # 組合數: 10
+
+# --- 2. 實作組合公式 C(n, k) (避免階乘溢位版) ---
+def nCr(n, k):
+    if k < 0 or k > n:
+        return 0
+    if k == 0 or k == n:
+        return 1
+    if k > n // 2:
+        k = n - k
+    
+    res = 1
+    for i in range(k):
+        res = res * (n - i) // (i + 1)
+    return res
+
+# --- 3. 列舉所有排列 (Permutations) ---
+data = [1, 2, 3]
+perms = list(itertools.permutations(data))
+print(f"所有排列: {perms}")
+# 輸出: [(1, 2, 3), (1, 3, 2), (2, 1, 3), (2, 3, 1), (3, 1, 2), (3, 2, 1)]
+
+# --- 4. 列舉所有組合 (Combinations) ---
+combs = list(itertools.combinations(data, 2))
+print(f"所有取 2 個的組合: {combs}")
+# 輸出: [(1, 2), (1, 3), (2, 3)]
+</code></pre>
+
+    <h2>5. 複雜度分析</h2>
+    <ul>
+        <li><strong>數值計算</strong>：
+            <ul>
+                <li>計算 $C(n, k)$ 的時間複雜度約為 $O(k)$ (使用邊乘邊除法)。</li>
+                <li>若使用巴斯卡三角形 (Pascal's Triangle) 建表，預處理時間為 $O(N^2)$，之後查詢為 $O(1)$。</li>
+            </ul>
+        </li>
+        <li><strong>列舉所有情況</strong>：
+            <ul>
+                <li><strong>排列</strong>：總數為 $n!$，時間複雜度為 $O(n \times n!)$。</li>
+                <li><strong>組合</strong>：總數為 $C(n, k)$，時間複雜度為 $O(k \times C(n, k))$。</li>
+                <li>注意：當 $n=13$ 時，$13! \approx 62$ 億，通常 $n > 10$ 就很難列舉所有排列。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>6. 特性總結與適用時機</h2>
+    <ul>
+        <li><strong>應用場景</strong>：
+            <ul>
+                <li><strong>計算數量</strong>：路徑走法（方格棋盤）、分組問題。</li>
+                <li><strong>列舉內容</strong>：窮舉所有可能的密碼、暴力破解、排班表。</li>
+            </ul>
+        </li>
+        <li><strong>APCS 考試應用</strong>：
+            <ul>
+                <li><strong>第 2 題</strong>：常考簡單的排列計數或字串排列。</li>
+                <li><strong>第 3、4 題</strong>：常考 DFS 回溯法列舉。例如：「請輸出所有可能的排列」或「八皇后問題」（這類問題本質上就是在做有限制的排列）。</li>
+                <li><strong>動態規劃</strong>：組合數 $C(n, k)$ 常用於 DP 狀態轉移（如巴斯卡三角形性質）。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>7. LeetCode 實戰練習</h2>
+    <p>以下題目是排列組合與回溯法的經典題：</p>
+    <ul>
+        <li><strong>基礎題 (Basic - 計算數量)</strong>：
+            <ul>
+                <li><a href="https://leetcode.com/problems/unique-paths/" target="_blank">62. Unique
+                        Paths</a>：機器人走迷宮的路徑數，其實就是 $C(TotalSteps, DownSteps)$。</li>
+                <li><a href="https://leetcode.com/problems/pascals-triangle/" target="_blank">118. Pascal's
+                        Triangle</a>：實作巴斯卡三角形。</li>
+            </ul>
+        </li>
+        <li><strong>進階題 (Advanced - 列舉內容)</strong>：
+            <ul>
+                <li><a href="https://leetcode.com/problems/permutations/" target="_blank">46.
+                        Permutations</a>：列出所有排列（經典回溯題）。</li>
+                <li><a href="https://leetcode.com/problems/combinations/" target="_blank">77. Combinations</a>：列出所有組合。
+                </li>
+                <li><a href="https://leetcode.com/problems/subsets/" target="_blank">78. Subsets</a>：列出所有子集（所有可能的組合集合）。
+                </li>
+                <li><a href="https://leetcode.com/problems/next-permutation/" target="_blank">31. Next
+                        Permutation</a>：尋找下一個字典序排列（APCS 進階技巧）。</li>
+            </ul>
+        </li>
+    </ul>
+</div>

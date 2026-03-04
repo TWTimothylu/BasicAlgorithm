@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合併排序動畫</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .bars-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 300px;
+            width: 100%;
+            padding: 0 20px;
+            gap: 4px;
+            /* 間距稍微縮小以容納更多元素 */
+        }
+
+        .bar {
+            width: 20px;
+            /* 稍微變窄 */
+            background-color: #9ca3af;
+            /* Gray-400: 預設 */
+            transition: height 0.2s ease, background-color 0.2s ease;
+            border-radius: 4px 4px 0 0;
+            position: relative;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #6b7280;
+            font-weight: bold;
+        }
+
+        /* 狀態顏色 */
+        .left-part {
+            background-color: #f59e0b !important;
+            /* Amber-500: 左半部子陣列 */
+        }
+
+        .right-part {
+            background-color: #8b5cf6 !important;
+            /* Violet-500: 右半部子陣列 */
+        }
+
+        .merging {
+            background-color: #ef4444 !important;
+            /* Red-500: 正在比較的元素 */
+        }
+
+        .sorted-range {
+            background-color: #10b981 !important;
+            /* Green-500: 本次合併完成的範圍 */
+        }
+
+        .active-write {
+            background-color: #3b82f6 !important;
+            /* Blue-500: 正在寫入的位置 */
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen p-4 text-gray-800">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-4xl border border-gray-100">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">合併排序 (Merge Sort)</h1>
+
+        <!-- 狀態資訊面板 -->
+        <div
+            class="flex flex-col items-center mb-8 bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[80px] justify-center text-center">
+            <div id="status-text" class="text-xl font-medium text-gray-600">
+                準備開始...
+            </div>
+            <div id="sub-status" class="text-sm text-gray-500 mt-1"></div>
+        </div>
+
+        <!-- 視覺化區域 -->
+        <div class="mb-8">
+            <div id="bars-container" class="bars-container">
+                <!-- 長條圖由 JS 生成 -->
+            </div>
+        </div>
+
+        <!-- 圖例 -->
+        <div class="flex justify-center space-x-4 text-sm text-gray-600 mt-4 border-t pt-4 flex-wrap">
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-gray-400 rounded-sm mr-2"></span>未處理</div>
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-amber-500 rounded-sm mr-2"></span>左子陣列</div>
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-violet-500 rounded-sm mr-2"></span>右子陣列</div>
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-blue-500 rounded-sm mr-2"></span>寫入位置</div>
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-green-500 rounded-sm mr-2"></span>合併完成</div>
+        </div>
+    </div>
+
+    <script>
+        // 設定
+        const ARRAY_SIZE = 20; // 增加數量以展示分治效果
+        const MIN_VAL = 5;
+        const MAX_VAL = 100;
+        const DELAY_MERGE = 150; // 合併寫入的速度
+
+        // DOM 元素
+        const container = document.getElementById('bars-container');
+        const statusText = document.getElementById('status-text');
+        const subStatus = document.getElementById('sub-status');
+
+        let dataArray = [];
+        let barElements = [];
+
+        // 工具：暫停
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // 生成隨機陣列
+        function generateArray() {
+            dataArray = [];
+            for (let i = 0; i < ARRAY_SIZE; i++) {
+                dataArray.push(Math.floor(Math.random() * (MAX_VAL - MIN_VAL + 1)) + MIN_VAL);
+            }
+        }
+
+        // 渲染長條圖
+        function renderBars() {
+            container.innerHTML = '';
+            barElements = [];
+
+            dataArray.forEach((val, idx) => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                // 高度比例
+                const heightPercent = ((val / MAX_VAL) * 90) + 10;
+                bar.style.height = `${heightPercent}%`;
+
+                // 數值標籤
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = val;
+                bar.appendChild(label);
+
+                container.appendChild(bar);
+                barElements.push(bar);
+            });
+        }
+
+        // 更新單一 Bar 的視覺 (用於寫入時)
+        function updateBarVisual(index, val, colorClass) {
+            const heightPercent = ((val / MAX_VAL) * 90) + 10;
+            barElements[index].style.height = `${heightPercent}%`;
+            barElements[index].querySelector('.bar-label').textContent = val;
+
+            // 清除舊顏色，套用新顏色
+            barElements[index].className = 'bar ' + colorClass;
+        }
+
+        // 批量設定顏色
+        function colorRange(start, end, className) {
+            for (let i = start; i <= end; i++) {
+                barElements[i].className = 'bar ' + className;
+            }
+        }
+
+        // 合併邏輯
+        async function merge(start, mid, end) {
+            // 建立暫存陣列 (複製資料)
+            let leftArr = [];
+            let rightArr = [];
+
+            // 視覺化：標記左右區間
+            for (let i = start; i <= mid; i++) {
+                leftArr.push(dataArray[i]);
+                barElements[i].className = 'bar left-part'; // 左邊顏色
+            }
+            for (let j = mid + 1; j <= end; j++) {
+                rightArr.push(dataArray[j]);
+                barElements[j].className = 'bar right-part'; // 右邊顏色
+            }
+
+            statusText.textContent = `合併區間 [${start}-${mid}] 與 [${mid + 1}-${end}]`;
+            await sleep(DELAY_MERGE * 2);
+
+            let i = 0; // 左陣列指標
+            let j = 0; // 右陣列指標
+            let k = start; // 原始陣列寫入指標
+
+            // 開始比較並寫回原始陣列
+            while (i < leftArr.length && j < rightArr.length) {
+                // 標記目前寫入位置
+                // 為了視覺效果，我們先不高亮正在比較的 leftArr[i] 和 rightArr[j] 
+                // 因為它們已經在 DOM 上被覆寫過了 (Merge Sort 是原地寫回)，
+                // 視覺上我們著重於 "從暫存區選出較小者填入目前格子 k"
+
+                subStatus.textContent = `比較左邊 ${leftArr[i]} 與 右邊 ${rightArr[j]}`;
+
+                // 決定誰比較小
+                let valToWrite;
+                if (leftArr[i] <= rightArr[j]) {
+                    valToWrite = leftArr[i];
+                    i++;
+                } else {
+                    valToWrite = rightArr[j];
+                    j++;
+                }
+
+                // 寫入動畫
+                dataArray[k] = valToWrite;
+                updateBarVisual(k, valToWrite, 'active-write');
+                await sleep(DELAY_MERGE);
+
+                // 寫入後標記為暫時的綠色 (表示這個子區間此位置已處理)
+                barElements[k].className = 'bar sorted-range';
+                k++;
+            }
+
+            // 處理剩餘元素 (左邊)
+            while (i < leftArr.length) {
+                subStatus.textContent = `填入剩餘左邊元素 ${leftArr[i]}`;
+                dataArray[k] = leftArr[i];
+                updateBarVisual(k, leftArr[i], 'active-write');
+                await sleep(DELAY_MERGE);
+                barElements[k].className = 'bar sorted-range';
+                i++;
+                k++;
+            }
+
+            // 處理剩餘元素 (右邊)
+            while (j < rightArr.length) {
+                subStatus.textContent = `填入剩餘右邊元素 ${rightArr[j]}`;
+                dataArray[k] = rightArr[j];
+                updateBarVisual(k, rightArr[j], 'active-write');
+                await sleep(DELAY_MERGE);
+                barElements[k].className = 'bar sorted-range';
+                j++;
+                k++;
+            }
+        }
+
+        // 合併排序遞迴函數
+        async function mergeSort(start, end) {
+            if (start >= end) {
+                return;
+            }
+
+            const mid = Math.floor((start + end) / 2);
+
+            // 遞迴左半部
+            await mergeSort(start, mid);
+            // 遞迴右半部
+            await mergeSort(mid + 1, end);
+
+            // 合併
+            await merge(start, mid, end);
+        }
+
+        // 主迴圈
+        async function runLoop() {
+            while (true) {
+                statusText.textContent = "初始化陣列...";
+                subStatus.textContent = "";
+                generateArray();
+                renderBars();
+                await sleep(1000);
+
+                statusText.textContent = "開始分割...";
+                await mergeSort(0, ARRAY_SIZE - 1);
+
+                statusText.textContent = "排序完成！";
+                subStatus.textContent = "所有區間已合併";
+
+                // 最後將所有 Bar 設為完成綠色 (雖然已經是綠色，但確保一致性)
+                colorRange(0, ARRAY_SIZE - 1, 'sorted-range');
+
+                await sleep(3000);
+            }
+        }
+
+        // 啟動
+        window.onload = () => {
+            runLoop();
+        };
+
+    </script>
+</body>
+
+</html>

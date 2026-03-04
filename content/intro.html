@@ -1,0 +1,89 @@
+<div class="content-area">
+    <h1>歡迎來到演算法世界</h1>
+    <p>這是一個示範頁面 (content/intro.html)。</p>
+    <p>下方的動畫是透過嵌入在 HTML 片段中的 <code>&lt;script&gt;</code> 標籤執行的。</p>
+
+    <!-- Canvas for Animation -->
+    <div style="display: flex; justify-content: center; margin: 2rem 0;">
+        <canvas id="algoCanvas" width="600" height="200"
+            style="border: 1px solid #334155; border-radius: 8px; background: #0f172a;"></canvas>
+    </div>
+
+    <h2>如何新增內容？</h2>
+    <p>由於您選擇了 <strong>HTML 模式</strong>，您只需要：</p>
+    <ol style="margin-left: 2rem; color: #cbd5e1; margin-bottom: 2rem;">
+        <li>在 <code>content/</code> 資料夾中建立新的 <code>.html</code> 檔案</li>
+        <li>在 <code>index.html</code> 的側邊欄加入對應的連結 (例如 <code>href="content/myfile.html"</code>)</li>
+        <li>開始撰寫 HTML、CSS 和 JS！</li>
+    </ol>
+
+    <script>
+        (function () {
+            // Self-executing function to avoid global namespace pollution
+            const canvas = document.getElementById('algoCanvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            let nodes = [];
+            const nodeCount = 15;
+
+            // Initialize nodes
+            for (let i = 0; i < nodeCount; i++) {
+                nodes.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2
+                });
+            }
+
+            function draw() {
+                // Check if canvas is still in DOM (user might have navigated away)
+                if (!document.getElementById('algoCanvas')) return;
+
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.2)'; // Trail effect
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.strokeStyle = '#38bdf8';
+                ctx.fillStyle = '#38bdf8';
+
+                // Update and draw nodes
+                nodes.forEach(node => {
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    // Bounce off walls
+                    if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+                    if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // Draw connections
+                ctx.beginPath();
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const dx = nodes[i].x - nodes[j].x;
+                        const dy = nodes[i].y - nodes[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < 100) {
+                            ctx.moveTo(nodes[i].x, nodes[i].y);
+                            ctx.lineTo(nodes[j].x, nodes[j].y);
+                        }
+                    }
+                }
+                ctx.globalAlpha = 0.3;
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+
+                requestAnimationFrame(draw);
+            }
+
+            draw();
+            console.log('Animation script running!');
+        })();
+    </script>
+</div>

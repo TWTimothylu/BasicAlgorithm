@@ -1,0 +1,133 @@
+<div class="content-area">
+    <h1>選擇排序 (Selection Sort) 演算法教學</h1>
+
+    <h2>1. 簡介</h2>
+    <p>選擇排序是一種簡單直觀的排序演算法。它的核心概念是「不斷地從未排序的數列中找出最小（或最大）的元素，將其放到已排序數列的末端」。</p>
+    <p>與氣泡排序不同的是，選擇排序每一輪只進行一次交換（將找到的最小值換到正確位置），因此交換次數較少，但比較的次數依然很多。</p>
+
+    <h2>2. 生活案例比喻</h2>
+    <ul>
+        <li><strong>體育課排身高</strong>：老師看著全班亂七八糟的隊伍，先把全班掃視一遍，找出最矮的同學，請他站到第一個位置。接著，老師忽略已經排好的第一位，從剩下的人裡面再掃視一遍，找出剩下人當中最矮的，請他站到第二個位置。重複這個動作，直到所有人都排好。
+        </li>
+        <li><strong>整理撲克牌</strong>：你手上有 13 張雜亂的牌。你先看過所有牌，找出最小的「梅花 2」，把它抽出來放到最左邊。接著在剩下的 12 張牌中找最小的，放到「梅花 2」的右邊。依此類推。</li>
+    </ul>
+
+    <h2>3. 演算法運作步驟</h2>
+    <p>假設要將陣列 <code>arr</code> 由小到大排序 (長度為 $N$)：</p>
+    <ol>
+        <li><strong>第一輪</strong>：
+            <ul>
+                <li>假設索引 $0$ 的位置是最小值。</li>
+                <li>從索引 $1$ 到 $N-1$ 掃描整個陣列，尋找比 <code>arr[0]</code> 更小的數。</li>
+                <li>如果找到更小的數，記錄其索引為 <code>min_index</code>。</li>
+                <li>掃描結束後，將 <code>arr[0]</code> 與 <code>arr[min_index]</code> 交換。</li>
+                <li>此時，索引 $0$ 的位置已確定是全陣列最小的數。</li>
+            </ul>
+        </li>
+        <li><strong>第二輪</strong>：
+            <ul>
+                <li>從索引 $1$ 開始，重複上述步驟（在 $1$ 到 $N-1$ 中找最小的）。</li>
+                <li>找到後，將其與 <code>arr[1]</code> 交換。</li>
+            </ul>
+        </li>
+        <li><strong>重複執行</strong>：第 $i$ 輪從索引 $i$ 開始尋找最小值並交換。</li>
+        <li><strong>終止條件</strong>：執行到 $N-1$ 輪時，最後一個元素自然是最大的，排序完成。</li>
+    </ol>
+
+    <!-- Animation Embed -->
+    <div style="margin: 2rem 0; text-align: center;">
+        <iframe src="content/ch2/animation/selection_sort_animation.html" width="100%" height="800px"
+            style="border: 3px solid black; border-radius: 6px; box-shadow: 4px 4px 0px rgba(0,0,0,1);"></iframe>
+        <p style="color: #666; font-size: 0.9em; margin-top: 0.5rem;">選擇排序動畫演示</p>
+    </div>
+
+    <h2>4. 程式碼實作</h2>
+
+    <h3>Python 實作範例</h3>
+
+    <pre><code class="language-python">def selection_sort(arr):
+    n = len(arr)
+    
+    # 只需要跑 n-1 輪，因為最後一個剩下的肯定是最大的
+    for i in range(n - 1):
+        # 假設目前的 i 是最小值的索引
+        min_idx = i
+        
+        # 從 i+1 開始往後找，看有沒有更小的
+        for j in range(i + 1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j  # 更新最小值索引
+        
+        # 如果找到的最小值索引不是原本的 i，則交換
+        if min_idx != i:
+            arr[i], arr[min_idx] = arr[min_idx], arr[i]
+            
+    return arr
+
+# 測試區塊
+data = [64, 25, 12, 22, 11]
+print(f"排序前: {data}")
+
+sorted_data = selection_sort(data)
+print(f"排序後: {sorted_data}")
+</code></pre>
+
+    <h2>5. 複雜度分析</h2>
+    <ul>
+        <li><strong>時間複雜度 (Time Complexity)</strong>：
+            <ul>
+                <li><strong>所有情況 (Best, Worst, Average)</strong>：$O(N^2)$。</li>
+                <li>原因：無論陣列是否已經排序好，選擇排序每一輪都必須「完整掃描」剩餘的陣列來確認誰是最小值。它無法像氣泡排序那樣提早結束。</li>
+            </ul>
+        </li>
+        <li><strong>空間複雜度 (Space Complexity)</strong>：
+            <ul>
+                <li>$O(1)$。屬於原地排序 (In-place Sort)。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>6. 特性總結與適用時機</h2>
+    <ul>
+        <li><strong>穩定性 (Stability)</strong>：<strong>不穩定</strong>。
+            <ul>
+                <li>例如陣列 <code>[5, 5, 2]</code>。第一輪會將第一個 <code>5</code> 與 <code>2</code> 交換，變成
+                    <code>[2, 5, 5]</code>。原本在前面的 <code>5</code> 被換到了後面，相對順序改變了。
+                </li>
+            </ul>
+        </li>
+        <li><strong>優點</strong>：
+            <ul>
+                <li>實作簡單。</li>
+                <li><strong>交換次數最少</strong>：在所有 $O(N^2)$ 的排序演算法中，選擇排序的資料交換 (Swap) 次數最少（最多 $N-1$ 次）。如果「寫入記憶體」的操作成本很高（例如
+                    Flash Memory），選擇排序可能比氣泡排序好一點。</li>
+            </ul>
+        </li>
+        <li><strong>缺點</strong>：
+            <ul>
+                <li>速度慢，永遠是 $O(N^2)$。</li>
+            </ul>
+        </li>
+        <li><strong>APCS 考試應用</strong>：
+            <ul>
+                <li><strong>第 1、2 題</strong>：可能會考追蹤程式碼執行過程（Trace code），問你「執行完第二輪後，陣列長什麼樣子？」。</li>
+                <li><strong>第 3、4 題</strong>：同樣<strong>不建議使用</strong>。若需排序請直接使用 Python 內建的 <code>sort()</code>。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>7. LeetCode 實戰練習</h2>
+    <p>練習重點在於理解「尋找區間最小值」與「交換」的操作：</p>
+    <ul>
+        <li><strong>基礎題 (Basic)</strong>：
+            <ul>
+                <li><a href="https://leetcode.com/problems/kth-largest-element-in-an-array/" target="_blank">215. Kth
+                        Largest Element in an Array</a>：雖然標準解法是 Quick Select 或 Heap，但此題的概念與選擇排序的邏輯（找第 K 大/小）有部分重疊。</li>
+                <li><a href="https://leetcode.com/problems/sort-an-array/" target="_blank">912. Sort an
+                        Array</a>：同樣不建議用選擇排序提交，會 TLE，但適合用來本地測試實作正確性。</li>
+                <li><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container
+                        With Most Water</a>：雖然這是雙指標題目，但「尋找最佳解」的過程中，理解如何在大範圍內縮小搜尋目標的邏輯有助於演算法思維。</li>
+            </ul>
+        </li>
+    </ul>
+</div>

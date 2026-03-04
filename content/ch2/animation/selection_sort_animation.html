@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選擇排序動畫</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .bars-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 300px;
+            width: 100%;
+            padding: 0 20px;
+            gap: 6px;
+        }
+
+        .bar {
+            width: 30px;
+            background-color: #3b82f6;
+            /* Blue-500: Default */
+            transition: height 0.3s ease, background-color 0.3s ease;
+            border-radius: 4px 4px 0 0;
+            position: relative;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #6b7280;
+            font-weight: bold;
+        }
+
+        /* 狀態顏色 */
+        .comparing {
+            background-color: #f59e0b !important;
+            /* Amber-500: 目前掃描到的元素 */
+        }
+
+        .min-candidate {
+            background-color: #9333ea !important;
+            /* Purple-600: 目前找到的最小值 */
+        }
+
+        .swapping {
+            background-color: #ef4444 !important;
+            /* Red-500: 交換中 */
+        }
+
+        .sorted {
+            background-color: #10b981 !important;
+            /* Green-500: 已排序 */
+        }
+
+        /* 指標箭頭 (用於標示目前最小值) */
+        .min-arrow {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #9333ea;
+            font-weight: bold;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+
+        .min-candidate .min-arrow {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen p-4 text-gray-800">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-3xl border border-gray-100">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">選擇排序 (Selection Sort)</h1>
+
+        <!-- 狀態資訊面板 -->
+        <div
+            class="flex flex-col items-center mb-8 bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[80px] justify-center text-center">
+            <div id="status-text" class="text-xl font-medium text-gray-600">
+                準備開始...
+            </div>
+            <div id="sub-status" class="text-sm text-gray-500 mt-1"></div>
+        </div>
+
+        <!-- 視覺化區域 -->
+        <div class="mb-8">
+            <div id="bars-container" class="bars-container">
+                <!-- 長條圖由 JS 生成 -->
+            </div>
+        </div>
+
+        <!-- 圖例 -->
+        <div class="flex justify-center space-x-4 text-sm text-gray-600 mt-4 border-t pt-4 flex-wrap">
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-blue-500 rounded-sm mr-2"></span>未排序</div>
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-purple-600 rounded-sm mr-2"></span>目前最小值</div>
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-yellow-500 rounded-sm mr-2"></span>掃描中</div>
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-green-500 rounded-sm mr-2"></span>已排序</div>
+        </div>
+    </div>
+
+    <script>
+        // 設定
+        const ARRAY_SIZE = 12;
+        const MIN_VAL = 10;
+        const MAX_VAL = 100;
+        const DELAY_SCAN = 200;    // 掃描比較的速度
+        const DELAY_SWAP = 600;    // 交換的速度
+
+        // DOM 元素
+        const container = document.getElementById('bars-container');
+        const statusText = document.getElementById('status-text');
+        const subStatus = document.getElementById('sub-status');
+
+        let dataArray = [];
+        let barElements = [];
+
+        // 工具：暫停
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // 生成隨機陣列
+        function generateArray() {
+            dataArray = [];
+            for (let i = 0; i < ARRAY_SIZE; i++) {
+                dataArray.push(Math.floor(Math.random() * (MAX_VAL - MIN_VAL + 1)) + MIN_VAL);
+            }
+        }
+
+        // 渲染長條圖
+        function renderBars() {
+            container.innerHTML = '';
+            barElements = [];
+
+            dataArray.forEach(val => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                // 高度比例
+                const heightPercent = ((val / MAX_VAL) * 90) + 10;
+                bar.style.height = `${heightPercent}%`;
+
+                // 數值標籤
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = val;
+                bar.appendChild(label);
+
+                // 最小值標記文字
+                const arrow = document.createElement('div');
+                arrow.className = 'min-arrow';
+                arrow.textContent = 'Min';
+                bar.appendChild(arrow);
+
+                container.appendChild(bar);
+                barElements.push(bar);
+            });
+        }
+
+        // 交換動畫
+        async function swapBars(i, j) {
+            if (i === j) return;
+
+            barElements[i].classList.add('swapping');
+            barElements[j].classList.add('swapping');
+
+            // 暫時移除其他顏色以凸顯交換
+            barElements[i].classList.remove('min-candidate');
+            barElements[j].classList.remove('min-candidate');
+
+            statusText.textContent = `交換 ${dataArray[i]} 與 ${dataArray[j]}`;
+            await sleep(DELAY_SWAP);
+
+            // 交換數據
+            let temp = dataArray[i];
+            dataArray[i] = dataArray[j];
+            dataArray[j] = temp;
+
+            // 更新高度
+            const heightPercentI = ((dataArray[i] / MAX_VAL) * 90) + 10;
+            const heightPercentJ = ((dataArray[j] / MAX_VAL) * 90) + 10;
+
+            barElements[i].style.height = `${heightPercentI}%`;
+            barElements[j].style.height = `${heightPercentJ}%`;
+
+            // 更新文字
+            barElements[i].querySelector('.bar-label').textContent = dataArray[i];
+            barElements[j].querySelector('.bar-label').textContent = dataArray[j];
+
+            await sleep(DELAY_SWAP);
+
+            barElements[i].classList.remove('swapping');
+            barElements[j].classList.remove('swapping');
+        }
+
+        // 選擇排序主邏輯
+        async function selectionSort() {
+            const n = dataArray.length;
+
+            for (let i = 0; i < n - 1; i++) {
+                let min_idx = i;
+
+                // 標記初始的最小值候選人
+                barElements[min_idx].classList.add('min-candidate');
+                statusText.textContent = `尋找第 ${i + 1} 小的數值`;
+                subStatus.textContent = `目前最小值：${dataArray[min_idx]}`;
+                await sleep(DELAY_SCAN);
+
+                for (let j = i + 1; j < n; j++) {
+                    // 標記正在掃描的元素
+                    barElements[j].classList.add('comparing');
+                    await sleep(DELAY_SCAN);
+
+                    if (dataArray[j] < dataArray[min_idx]) {
+                        // 找到更小的，更新最小值標記
+                        barElements[min_idx].classList.remove('min-candidate'); // 舊的移除
+                        min_idx = j;
+                        barElements[min_idx].classList.add('min-candidate');    // 新的加上
+
+                        subStatus.textContent = `發現更小值：${dataArray[min_idx]}`;
+                        await sleep(DELAY_SCAN + 100);
+                    }
+
+                    // 掃描結束，移除掃描色
+                    barElements[j].classList.remove('comparing');
+                }
+
+                // 一輪掃描結束，進行交換
+                if (min_idx !== i) {
+                    await swapBars(min_idx, i);
+                } else {
+                    // 如果自己就是最小，稍微停頓一下示意
+                    statusText.textContent = `${dataArray[i]} 已是目前最小，無需交換`;
+                    await sleep(500);
+                    barElements[min_idx].classList.remove('min-candidate');
+                }
+
+                // 鎖定已排序的元素
+                barElements[i].classList.add('sorted');
+                barElements[i].classList.remove('min-candidate'); // 確保移除
+            }
+
+            // 最後一個元素自然已排序
+            barElements[n - 1].classList.add('sorted');
+
+            statusText.textContent = "排序完成！";
+            subStatus.textContent = "";
+            await sleep(3000);
+        }
+
+        // 主迴圈
+        async function runLoop() {
+            while (true) {
+                statusText.textContent = "初始化陣列...";
+                generateArray();
+                renderBars();
+                await sleep(1000);
+
+                await selectionSort();
+
+                statusText.textContent = "3秒後重新開始...";
+                await sleep(3000);
+            }
+        }
+
+        // 啟動
+        window.onload = () => {
+            runLoop();
+        };
+
+    </script>
+</body>
+
+</html>

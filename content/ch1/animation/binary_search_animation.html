@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二分搜尋演算法演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* 陣列元素樣式 */
+        .array-box {
+            transition: all 0.5s ease;
+        }
+
+        /* 被排除的元素樣式 */
+        .dimmed {
+            opacity: 0.2;
+            background-color: #d1d5db !important;
+            border-color: #9ca3af !important;
+            color: #9ca3af !important;
+            transform: scale(0.9);
+        }
+
+        /* 找到的目標樣式 */
+        .found {
+            background-color: #10b981 !important;
+            /* Green-500 */
+            color: white !important;
+            border-color: #059669 !important;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+            z-index: 10;
+        }
+
+        /* 指標容器與動畫 */
+        .pointers-container {
+            position: relative;
+            height: 40px;
+            margin-top: 10px;
+        }
+
+        .pointer {
+            position: absolute;
+            transition: left 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 48px;
+            /* 需與 array-box 寬度匹配 */
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+
+        .pointer-label {
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: white;
+            margin-top: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .pointer-arrow {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 8px solid;
+        }
+
+        /* 指標個別顏色 */
+        .p-low .pointer-label {
+            background-color: #3b82f6;
+        }
+
+        /* Blue */
+        .p-low .pointer-arrow {
+            border-bottom-color: #3b82f6;
+        }
+
+        .p-high .pointer-label {
+            background-color: #ef4444;
+        }
+
+        /* Red */
+        .p-high .pointer-arrow {
+            border-bottom-color: #ef4444;
+        }
+
+        .p-mid .pointer-label {
+            background-color: #f59e0b;
+        }
+
+        /* Amber */
+        .p-mid .pointer-arrow {
+            border-bottom-color: #f59e0b;
+        }
+
+        .p-mid {
+            z-index: 5;
+        }
+
+        /* 當前檢查中的 Mid 元素高亮 */
+        .checking-mid {
+            border-color: #f59e0b !important;
+            background-color: #fef3c7;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen p-4 text-gray-800">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-4xl border border-gray-100">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">二分搜尋演算法演示</h1>
+
+        <!-- 狀態資訊面板 -->
+        <div class="flex justify-between items-center mb-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div class="flex items-center space-x-4">
+                <div class="text-lg">
+                    <span class="text-gray-500">尋找目標值:</span>
+                    <span id="target-display" class="text-2xl font-bold text-indigo-600 ml-2">--</span>
+                </div>
+            </div>
+            <div id="status-text" class="text-lg font-medium text-gray-600">
+                準備開始...
+            </div>
+        </div>
+
+        <!-- 視覺化區域 -->
+        <div class="relative mb-12">
+            <!-- 陣列盒子容器 -->
+            <div id="array-container" class="flex justify-center space-x-2 mb-2">
+                <!-- 由 JS 生成 -->
+            </div>
+
+            <!-- 指標容器 -->
+            <div id="pointers-area" class="pointers-container mx-auto" style="width: fit-content;">
+                <!-- Low Pointer -->
+                <div id="ptr-low" class="pointer p-low hidden">
+                    <div class="pointer-arrow"></div>
+                    <div class="pointer-label">Low</div>
+                </div>
+                <!-- Mid Pointer -->
+                <div id="ptr-mid" class="pointer p-mid hidden">
+                    <div class="pointer-arrow"></div>
+                    <div class="pointer-label">Mid</div>
+                </div>
+                <!-- High Pointer -->
+                <div id="ptr-high" class="pointer p-high hidden">
+                    <div class="pointer-arrow"></div>
+                    <div class="pointer-label">High</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 圖例 -->
+        <div class="flex justify-center space-x-6 text-sm text-gray-600 mt-4 border-t pt-4">
+            <div class="flex items-center"><span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>搜尋範圍起點 (Low)</div>
+            <div class="flex items-center"><span class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>中間點 (Mid)</div>
+            <div class="flex items-center"><span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>搜尋範圍終點 (High)</div>
+            <div class="flex items-center"><span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>找到目標</div>
+        </div>
+    </div>
+
+    <script>
+        // 設定參數
+        const ARRAY_SIZE = 7;
+        const ANIMATION_SPEED = 1200; // 毫秒
+
+        // DOM 元素
+        const container = document.getElementById('array-container');
+        const targetDisplay = document.getElementById('target-display');
+        const statusText = document.getElementById('status-text');
+        const ptrLow = document.getElementById('ptr-low');
+        const ptrMid = document.getElementById('ptr-mid');
+        const ptrHigh = document.getElementById('ptr-high');
+        const pointersArea = document.getElementById('pointers-area');
+
+        // 狀態變數
+        let dataArray = [];
+        let target = null;
+        let elements = []; // 儲存 DOM 元素引用
+
+        // 工具函式：暫停
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // 工具函式：生成隨機排序陣列
+        function generateSortedArray(size) {
+            const arr = [];
+            let current = Math.floor(Math.random() * 10) + 1;
+            for (let i = 0; i < size; i++) {
+                arr.push(current);
+                current += Math.floor(Math.random() * 8) + 1;
+            }
+            return arr;
+        }
+
+        // 初始化畫面
+        function initDisplay() {
+            container.innerHTML = '';
+            elements = [];
+            dataArray = generateSortedArray(ARRAY_SIZE);
+
+            // 隨機選擇一個目標值 (保證存在於陣列中以展示成功案例)
+            target = dataArray[Math.floor(Math.random() * dataArray.length)];
+            targetDisplay.textContent = target;
+            statusText.textContent = "初始化陣列...";
+            statusText.className = "text-lg font-medium text-gray-600";
+
+            // 渲染陣列
+            dataArray.forEach((val, index) => {
+                const box = document.createElement('div');
+                box.className = 'array-box flex items-center justify-center w-12 h-12 bg-white border-2 border-gray-300 rounded-md font-bold text-gray-700 text-lg shadow-sm';
+                box.textContent = val;
+                box.id = `box-${index}`;
+                container.appendChild(box);
+                elements.push(box);
+            });
+
+            // 設定指標區域寬度與陣列容器一致，確保絕對定位正確
+            pointersArea.style.width = `${container.offsetWidth}px`;
+
+            // 重置指標
+            ptrLow.classList.add('hidden');
+            ptrMid.classList.add('hidden');
+            ptrHigh.classList.add('hidden');
+        }
+
+        // 更新指標位置
+        function movePointer(pointerElem, index) {
+            if (index < 0 || index >= ARRAY_SIZE) return;
+
+            pointerElem.classList.remove('hidden');
+
+            // 每個盒子寬度 48px (w-12) + margin-right 8px (space-x-2 = 0.5rem)
+            // 需計算精確位置
+            const box = elements[index];
+            // 相對於 container 的位置
+            const offsetLeft = box.offsetLeft;
+
+            pointerElem.style.left = `${offsetLeft}px`;
+        }
+
+        // 灰階化範圍內的元素
+        function dimRange(start, end) {
+            for (let i = start; i <= end; i++) {
+                if (elements[i]) {
+                    elements[i].classList.add('dimmed');
+                }
+            }
+        }
+
+        // 重置所有樣式
+        function resetStyles() {
+            elements.forEach(el => {
+                el.className = 'array-box flex items-center justify-center w-12 h-12 bg-white border-2 border-gray-300 rounded-md font-bold text-gray-700 text-lg shadow-sm';
+            });
+        }
+
+        // 二分搜尋動畫主邏輯
+        async function binarySearchAnimation() {
+            let low = 0;
+            let high = ARRAY_SIZE - 1;
+
+            // 初始指標位置
+            movePointer(ptrLow, low);
+            movePointer(ptrHigh, high);
+            statusText.textContent = `設定範圍：索引 ${low} 到 ${high}`;
+            await sleep(ANIMATION_SPEED);
+
+            while (low <= high) {
+                const mid = Math.floor((low + high) / 2);
+
+                // 1. 移動 Mid 指標並高亮
+                movePointer(ptrMid, mid);
+                movePointer(ptrLow, low);
+                movePointer(ptrHigh, high);
+
+                elements[mid].classList.add('checking-mid');
+                statusText.innerHTML = `計算中點：索引 <span class="text-yellow-600 font-bold">${mid}</span>，數值為 <span class="text-yellow-600 font-bold">${dataArray[mid]}</span>`;
+
+                await sleep(ANIMATION_SPEED);
+
+                // 2. 比較
+                if (dataArray[mid] === target) {
+                    // 找到目標
+                    elements[mid].classList.remove('checking-mid');
+                    elements[mid].classList.add('found');
+                    statusText.innerHTML = `找到目標值 <span class="text-green-600 font-bold">${target}</span>！`;
+
+                    // 隱藏非必要的指標
+                    ptrLow.classList.add('hidden');
+                    ptrHigh.classList.add('hidden');
+
+                    await sleep(3000); // 停留久一點展示成功
+                    return; // 結束
+                }
+                else if (dataArray[mid] < target) {
+                    // 目標在右邊
+                    statusText.innerHTML = `${dataArray[mid]} < ${target}，排除左半部`;
+                    dimRange(low, mid); // 灰掉左邊和中間
+                    elements[mid].classList.remove('checking-mid');
+
+                    await sleep(ANIMATION_SPEED);
+                    low = mid + 1;
+                }
+                else {
+                    // 目標在左邊
+                    statusText.innerHTML = `${dataArray[mid]} > ${target}，排除右半部`;
+                    dimRange(mid, high); // 灰掉右邊和中間
+                    elements[mid].classList.remove('checking-mid');
+
+                    await sleep(ANIMATION_SPEED);
+                    high = mid - 1;
+                }
+            }
+        }
+
+        // 主迴圈
+        async function runLoop() {
+            while (true) {
+                initDisplay();
+                // 讓畫面先渲染出來
+                await sleep(1000);
+
+                await binarySearchAnimation();
+
+                statusText.textContent = "演示結束，3秒後重新開始...";
+                await sleep(3000);
+            }
+        }
+
+        // 啟動
+        window.onload = () => {
+            runLoop();
+        };
+
+        // 視窗大小改變時修正指標位置
+        window.onresize = () => {
+            // 簡單重繪目前的指標位置，這裡為了簡化直接讓 CSS flex 處理，
+            // 實際重算需要重新讀取 offsetLeft，但在動畫進行中較為複雜，
+            // 此處依賴相對定位與容器寬度同步。
+            pointersArea.style.width = `${container.offsetWidth}px`;
+        };
+
+    </script>
+</body>
+
+</html>

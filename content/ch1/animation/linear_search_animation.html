@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>線性搜尋動畫</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .element-box {
+            transition: all 0.4s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen flex flex-col items-center justify-center font-sans text-slate-800 p-4">
+
+    <div class="mb-8 text-center">
+        <h1 class="text-2xl md:text-3xl font-bold mb-2">線性搜尋 (Linear Search)</h1>
+        <p class="text-base md:text-lg text-slate-600">尋找目標值：<span class="font-bold text-blue-600 text-xl"
+                id="target-value"></span></p>
+    </div>
+
+    <!-- 陣列容器 -->
+    <div id="array-container" class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8 w-full max-w-5xl"></div>
+
+    <!-- 狀態顯示 -->
+    <div class="h-12 flex items-center justify-center">
+        <p id="status-text" class="text-base md:text-lg font-medium tracking-wide text-center"></p>
+    </div>
+
+    <script>
+        // 設定初始資料與目標
+        const arrayData = [24, 15, 8, 42, 77, 16, 50, 99, 4];
+        const targetNumber = 16;
+        const animationDelayMs = 800;
+
+        document.getElementById('target-value').innerText = targetNumber;
+
+        // 建立延遲函數以控制動畫節奏
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function runLinearSearchAnimation() {
+            const container = document.getElementById('array-container');
+            const statusText = document.getElementById('status-text');
+
+            // 清空容器以重新播放動畫
+            container.innerHTML = '';
+            statusText.className = 'text-base md:text-lg font-medium tracking-wide text-center text-slate-800';
+
+            // 初始化 DOM 元素，加入根據視窗寬度調整的 class
+            arrayData.forEach((num) => {
+                const el = document.createElement('div');
+                el.className = 'element-box flex flex-col items-center justify-center bg-white border-2 border-slate-300 rounded-lg shadow-sm w-[clamp(3rem,10vw,5rem)] h-[clamp(3rem,10vw,5rem)]';
+
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'font-bold text-[clamp(1.2rem,4vw,2rem)]';
+                valueSpan.innerText = num;
+
+                el.appendChild(valueSpan);
+                container.appendChild(el);
+            });
+
+            const elements = container.children;
+            statusText.innerText = "準備開始搜尋...";
+            await sleep(1500);
+
+            // 開始線性搜尋邏輯
+            for (let i = 0; i < arrayData.length; i++) {
+                statusText.innerText = `正在檢查索引 ${i} 的數值：${arrayData[i]}`;
+
+                // 標示為「檢查中」狀態 (黃色)
+                elements[i].classList.remove('bg-white', 'border-slate-300');
+                elements[i].classList.add('bg-yellow-100', 'border-yellow-400', 'scale-110', 'shadow-md');
+
+                await sleep(animationDelayMs);
+
+                if (arrayData[i] === targetNumber) {
+                    // 找到目標，標示為「成功」狀態 (綠色)
+                    elements[i].classList.remove('bg-yellow-100', 'border-yellow-400', 'scale-110', 'shadow-md');
+                    elements[i].classList.add('bg-emerald-500', 'border-emerald-600', 'text-white', 'scale-110', 'shadow-lg');
+
+                    statusText.innerText = `搜尋完成：在索引 ${i} 找到目標值 ${targetNumber}。`;
+                    statusText.classList.remove('text-slate-800');
+                    statusText.classList.add('text-emerald-600', 'font-bold');
+                    return; // 結束搜尋
+                } else {
+                    // 未找到，標示為「已檢查」狀態 (灰色)
+                    elements[i].classList.remove('bg-yellow-100', 'border-yellow-400', 'scale-110', 'shadow-md');
+                    elements[i].classList.add('bg-slate-200', 'border-slate-300', 'text-slate-400');
+                }
+            }
+
+            // 走訪完整個陣列都沒找到
+            statusText.innerText = `搜尋結束：陣列中不存在目標值 ${targetNumber}。`;
+            statusText.classList.remove('text-slate-800');
+            statusText.classList.add('text-red-500', 'font-bold');
+        }
+
+        // 無限輪播控制邏輯
+        async function loopAnimation() {
+            while (true) {
+                await runLinearSearchAnimation();
+                await sleep(3000); // 每次動畫結束後暫停 3 秒再重新開始
+            }
+        }
+
+        // 確保 DOM 載入後自動執行無限輪播
+        window.onload = loopAnimation;
+    </script>
+</body>
+
+</html>

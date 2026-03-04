@@ -1,0 +1,157 @@
+<div class="content-area">
+    <h1>質數判斷與埃拉托斯特尼篩法演算法教學</h1>
+
+    <h2>1. 簡介</h2>
+    <ul>
+        <li><strong>質數 (Prime Number)</strong>：一個大於 1 的自然數，除了 1 和它本身以外，無法被其他自然數整除。例如：2, 3, 5, 7, 11...。</li>
+        <li><strong>埃拉托斯特尼篩法 (Sieve of Eratosthenes)</strong>：一種用來找出一定範圍內所有質數的高效演算法。</li>
+    </ul>
+    <p>在程式競賽中，針對單一數字的判斷通常使用<strong>試除法</strong>，而針對範圍內的大量質數查詢則使用<strong>篩法</strong>。</p>
+
+    <h2>2. 生活案例比喻</h2>
+    <ul>
+        <li><strong>質數判斷 - 排隊形</strong>：想像一個班級有 $N$ 個人。如果這些人除了排成「一直排」之外，完全無法排成任何整齊的長方形隊伍（例如 2排、3排...），那這個人數 $N$ 就是質數。例如
+            7 個人只能排成 1x7，所以 7 是質數；9 個人可以排成 3x3，所以 9 不是質數。</li>
+        <li><strong>篩法 - 撈金魚的濾網</strong>：假設池塘裡有編號 1 到 100 的魚。我們先用「倍數為 2」的網子撈走所有 2 的倍數（除了 2 本身），再用「倍數為 3」的網子撈走 3
+            的倍數...依此類推。最後留在池塘裡的，就是游得最快、無法被網住的「質數魚」。</li>
+    </ul>
+
+    <h2>3. 演算法運作步驟</h2>
+
+    <h3>A. 試除法 (Trial Division) - 判斷單一數字</h3>
+    <p>假設要判斷 $N$ 是否為質數：</p>
+    <ol>
+        <li>若 $N &lt; 2$，不是質數。</li>
+        <li>從整數 $i = 2$ 開始嘗試除 $N$。</li>
+        <li>若 $N$ 能被 $i$ 整除 ($N \% i == 0$)，則 $N$ 不是質數。</li>
+        <li><strong>優化關鍵</strong>：只需檢查到 $\sqrt{N}$ 即可。因為若 $N = a \times b$，則 $a$ 和 $b$ 之中必有一個小於或等於 $\sqrt{N}$。</li>
+    </ol>
+
+    <h3>B. 埃拉托斯特尼篩法 (Sieve) - 找出範圍內所有質數</h3>
+    <p>假設要找出 $N$ 以內的所有質數：</p>
+    <ol>
+        <li>建立一個長度為 $N+1$ 的布林陣列 <code>is_prime</code>，初始值全設為 <code>True</code>。</li>
+        <li>將 <code>is_prime[0]</code> 與 <code>is_prime[1]</code> 設為 <code>False</code>。</li>
+        <li>從 $i = 2$ 開始遍歷到 $\sqrt{N}$：
+            <ul>
+                <li>若 <code>is_prime[i]</code> 為 <code>True</code>（代表 $i$ 是質數）：
+                    <ul>
+                        <li>將所有 $i$ 的倍數（從 $i^2$ 開始：$i^2, i(i+1), ...$）標記為 <code>False</code>。</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li>最後陣列中仍為 <code>True</code> 的索引值即為質數。</li>
+    </ol>
+
+    <h2>4. 程式碼實作</h2>
+
+    <h3>Python 實作範例</h3>
+
+    <pre><code class="language-python">import math
+
+# 1. 單一數字判斷：試除法 (Trial Division)
+def is_prime(n):
+    if n < 2:
+        return False
+    if n == 2:
+        return True
+    if n % 2 == 0:
+        return False
+    
+    # 只需檢查到 sqrt(n)，且只檢查奇數
+    limit = int(math.isqrt(n))
+    for i in range(3, limit + 1, 2):
+        if n % i == 0:
+            return False
+    return True
+
+# 2. 範圍質數列表：埃拉托斯特尼篩法 (Sieve of Eratosthenes)
+def sieve_of_eratosthenes(limit):
+    """
+    回傳小於等於 limit 的所有質數列表
+    """
+    if limit < 2:
+        return []
+    
+    # 初始化布林陣列
+    is_prime_list = [True] * (limit + 1)
+    is_prime_list[0] = is_prime_list[1] = False
+    
+    # 篩法核心
+    # 只需遍歷到 sqrt(limit)
+    for i in range(2, int(math.isqrt(limit)) + 1):
+        if is_prime_list[i]:
+            # 從 i*i 開始篩，因為小於 i*i 的倍數已經被更小的質數篩過了
+            # 例如 i=5，5*2 已被 2 篩過，5*3 已被 3 篩過
+            # 間隔為 i
+            for multiple in range(i * i, limit + 1, i):
+                is_prime_list[multiple] = False
+                
+    # 收集結果
+    primes = [num for num, is_p in enumerate(is_prime_list) if is_p]
+    return primes
+
+# 測試區塊
+print(f"97 是質數嗎? {is_prime(97)}")
+print(f"50 以內的質數: {sieve_of_eratosthenes(50)}")
+</code></pre>
+
+    <h2>5. 複雜度分析</h2>
+    <ul>
+        <li><strong>試除法 (單次查詢)</strong>：
+            <ul>
+                <li><strong>時間複雜度</strong>：$O(\sqrt{N})$。最差情況需檢查到根號 $N$。</li>
+                <li><strong>空間複雜度</strong>：$O(1)$。</li>
+            </ul>
+        </li>
+        <li><strong>埃拉托斯特尼篩法 (範圍查詢)</strong>：
+            <ul>
+                <li><strong>時間複雜度</strong>：$O(N \log \log N)$。這是一個非常接近線性的時間複雜度。</li>
+                <li><strong>空間複雜度</strong>：$O(N)$。需要一個陣列來儲存狀態。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>6. 特性總結與適用時機</h2>
+    <ul>
+        <li><strong>試除法</strong>：
+            <ul>
+                <li>適用於<strong>單次詢問</strong>，或者 $N$ 非常大（例如 $10^{12}$）但記憶體不足以開陣列時。</li>
+            </ul>
+        </li>
+        <li><strong>篩法</strong>：
+            <ul>
+                <li>適用於<strong>多次詢問</strong>（例如：問你 1000 次「某數是不是質數」），且 $N$ 在可接受的記憶體範圍內（通常 $N \le 10^7$）。</li>
+                <li>預先計算一次表 (Pre-computation)，之後每次查詢僅需 $O(1)$。</li>
+            </ul>
+        </li>
+        <li><strong>APCS 考試應用</strong>：
+            <ul>
+                <li><strong>第 1 題</strong>：通常考單一數字判斷，寫出 $O(\sqrt{N})$ 的試除法即可。</li>
+                <li><strong>第 3、4 題</strong>：若題目涉及大量因數分解或質數查詢，務必使用篩法建立質數表，否則會超時 (TLE)。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>7. LeetCode 實戰練習</h2>
+    <p>以下題目涉及質數判斷或篩法的觀念應用：</p>
+    <ul>
+        <li><strong>基礎題 (Basic)</strong>：
+            <ul>
+                <li><a href="https://leetcode.com/problems/count-primes/" target="_blank">204. Count
+                        Primes</a>：經典題，直接考篩法實作。</li>
+                <li><a href="https://leetcode.com/problems/prime-number-of-set-bits-in-binary-representation/"
+                        target="_blank">762. Prime Number of Set Bits in Binary Representation</a>：結合二進位操作與小範圍質數判斷。</li>
+            </ul>
+        </li>
+        <li><strong>進階應用題 (Advanced)</strong>：
+            <ul>
+                <li><a href="https://leetcode.com/problems/prime-palindrome/" target="_blank">866. Prime
+                        Palindrome</a>：尋找回文質數，結合字串處理與質數判斷。</li>
+                <li><a href="https://leetcode.com/problems/largest-component-size-by-common-factor/"
+                        target="_blank">952. Largest Component Size by Common Factor</a>：結合篩法因數分解與並查集 (DSU) 的困難題。</li>
+            </ul>
+        </li>
+    </ul>
+</div>

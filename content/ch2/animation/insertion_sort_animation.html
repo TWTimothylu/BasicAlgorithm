@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>插入排序動畫</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .bars-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 300px;
+            width: 100%;
+            padding: 0 20px;
+            gap: 6px;
+        }
+
+        .bar {
+            width: 30px;
+            background-color: #9ca3af;
+            /* Gray-400: 未排序區域預設 */
+            transition: height 0.3s ease, background-color 0.3s ease;
+            border-radius: 4px 4px 0 0;
+            position: relative;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #6b7280;
+            font-weight: bold;
+        }
+
+        /* 狀態顏色 */
+        .sorted-partition {
+            background-color: #10b981 !important;
+            /* Green-500: 已排序區域 */
+        }
+
+        .current-key {
+            background-color: #9333ea !important;
+            /* Purple-600: 目前要插入的 Key */
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.5);
+            z-index: 10;
+        }
+
+        .comparing {
+            background-color: #f59e0b !important;
+            /* Amber-500: 正在比較的對象 */
+        }
+
+        .shifting {
+            opacity: 0.7;
+            /* 移動時稍微淡化 */
+        }
+
+        /* 標記 Key 的箭頭 */
+        .key-marker {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #9333ea;
+            font-weight: bold;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+
+        .current-key .key-marker {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen p-4 text-gray-800">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-3xl border border-gray-100">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">插入排序 (Insertion Sort)</h1>
+
+        <!-- 狀態資訊面板 -->
+        <div
+            class="flex flex-col items-center mb-8 bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[80px] justify-center text-center">
+            <div id="status-text" class="text-xl font-medium text-gray-600">
+                準備開始...
+            </div>
+            <div id="sub-status" class="text-sm text-gray-500 mt-1"></div>
+        </div>
+
+        <!-- 視覺化區域 -->
+        <div class="mb-8">
+            <div id="bars-container" class="bars-container">
+                <!-- 長條圖由 JS 生成 -->
+            </div>
+        </div>
+
+        <!-- 圖例 -->
+        <div class="flex justify-center space-x-4 text-sm text-gray-600 mt-4 border-t pt-4 flex-wrap">
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-gray-400 rounded-sm mr-2"></span>未排序</div>
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-green-500 rounded-sm mr-2"></span>已排序區</div>
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-purple-600 rounded-sm mr-2"></span>基準值 (Key)
+            </div>
+            <div class="flex items-center m-1"><span class="w-3 h-3 bg-yellow-500 rounded-sm mr-2"></span>比較中</div>
+        </div>
+    </div>
+
+    <script>
+        // 設定
+        const ARRAY_SIZE = 12;
+        const MIN_VAL = 10;
+        const MAX_VAL = 100;
+        const DELAY_COMPARE = 400; // 比較速度
+        const DELAY_SHIFT = 400;   // 移動速度
+
+        // DOM 元素
+        const container = document.getElementById('bars-container');
+        const statusText = document.getElementById('status-text');
+        const subStatus = document.getElementById('sub-status');
+
+        let dataArray = [];
+        let barElements = [];
+
+        // 工具：暫停
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // 生成隨機陣列
+        function generateArray() {
+            dataArray = [];
+            for (let i = 0; i < ARRAY_SIZE; i++) {
+                dataArray.push(Math.floor(Math.random() * (MAX_VAL - MIN_VAL + 1)) + MIN_VAL);
+            }
+        }
+
+        // 渲染長條圖
+        function renderBars() {
+            container.innerHTML = '';
+            barElements = [];
+
+            dataArray.forEach(val => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                // 高度比例
+                const heightPercent = ((val / MAX_VAL) * 90) + 10;
+                bar.style.height = `${heightPercent}%`;
+
+                // 數值標籤
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = val;
+                bar.appendChild(label);
+
+                // Key 標記文字
+                const marker = document.createElement('div');
+                marker.className = 'key-marker';
+                marker.textContent = 'Key';
+                bar.appendChild(marker);
+
+                container.appendChild(bar);
+                barElements.push(bar);
+            });
+        }
+
+        // 更新單一 Bar 的高度與文字
+        function updateBarVisual(index, val) {
+            const heightPercent = ((val / MAX_VAL) * 90) + 10;
+            barElements[index].style.height = `${heightPercent}%`;
+            barElements[index].querySelector('.bar-label').textContent = val;
+        }
+
+        // 插入排序主邏輯
+        async function insertionSort() {
+            const n = dataArray.length;
+
+            // 索引 0 視為已排序
+            barElements[0].classList.add('sorted-partition');
+            barElements[0].classList.remove('bar'); // 移除預設灰，改用綠
+            barElements[0].classList.add('bar');    // 保持基本樣式但顏色被蓋過
+
+            for (let i = 1; i < n; i++) {
+                let key = dataArray[i];
+                let j = i - 1;
+
+                // 視覺化：標記 Key
+                barElements[i].classList.add('current-key');
+                statusText.textContent = `取出 ${key} 準備插入`;
+                subStatus.textContent = `已排序區間：索引 0 ~ ${i - 1}`;
+                await sleep(DELAY_COMPARE + 200);
+
+                // 為了視覺效果，我們在比較時保持 i 位置為 "空" 或被 Key 佔據的狀態
+                // 這裡我們直接操作陣列與視覺，模擬將 Key 拿在手上
+
+                let placed = false;
+                while (j >= 0) {
+                    // 標記比較對象
+                    barElements[j].classList.add('comparing');
+                    // 比較對象本身要是綠色的 (已排序區)，我們暫時疊加黃色
+
+                    statusText.textContent = `比較：${dataArray[j]} vs Key (${key})`;
+                    await sleep(DELAY_COMPARE);
+
+                    if (dataArray[j] > key) {
+                        // 需要移動
+                        subStatus.textContent = `${dataArray[j]} 大於 Key，往後移動`;
+
+                        // 資料移動
+                        dataArray[j + 1] = dataArray[j];
+
+                        // 視覺更新：將 j 的高度複製給 j+1
+                        updateBarVisual(j + 1, dataArray[j]);
+
+                        // 樣式更新：移動過後的 j+1 應視為已排序區的一部分 (雖然還沒定案)
+                        barElements[j + 1].classList.remove('current-key'); // 如果它是原本的 i
+                        barElements[j + 1].classList.add('sorted-partition');
+
+                        barElements[j].classList.remove('comparing');
+                        j--;
+                        await sleep(DELAY_SHIFT);
+                    } else {
+                        // 找到位置
+                        subStatus.textContent = `${dataArray[j]} 小於等於 Key，位置確定`;
+                        barElements[j].classList.remove('comparing');
+                        placed = true;
+                        break;
+                    }
+                }
+
+                // 插入 Key
+                dataArray[j + 1] = key;
+                updateBarVisual(j + 1, key);
+
+                // 視覺確認插入
+                barElements[j + 1].classList.remove('current-key');
+                barElements[j + 1].classList.add('sorted-partition');
+
+                // 閃爍一下表示插入完成
+                barElements[j + 1].style.opacity = '0.5';
+                statusText.textContent = `將 Key (${key}) 插入索引 ${j + 1}`;
+                await sleep(200);
+                barElements[j + 1].style.opacity = '1';
+
+                // 確保 0~i 都是綠色 (修復視覺可能的小瑕疵)
+                for (let k = 0; k <= i; k++) {
+                    barElements[k].classList.add('sorted-partition');
+                    barElements[k].classList.remove('current-key');
+                }
+
+                await sleep(DELAY_SHIFT);
+            }
+
+            statusText.textContent = "排序完成！";
+            subStatus.textContent = "";
+            await sleep(3000);
+        }
+
+        // 主迴圈
+        async function runLoop() {
+            while (true) {
+                statusText.textContent = "初始化陣列...";
+                generateArray();
+                renderBars();
+                await sleep(1000);
+
+                await insertionSort();
+
+                statusText.textContent = "3秒後重新開始...";
+                // 將所有 bar 變回灰色或保留綠色皆可，這裡準備重置
+                await sleep(3000);
+            }
+        }
+
+        // 啟動
+        window.onload = () => {
+            runLoop();
+        };
+
+    </script>
+</body>
+
+</html>

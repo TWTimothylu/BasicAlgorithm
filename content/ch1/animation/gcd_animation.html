@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幾何輾轉相除法演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* 幾何容器 */
+        .rect-container {
+            position: relative;
+            background-color: #e5e7eb;
+            /* 尚未填滿的背景色 */
+            border: 2px solid #374151;
+            margin: 0 auto;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.5s ease;
+        }
+
+        /* 正方形區塊 */
+        .geo-square {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-sizing: border-box;
+        }
+
+        .geo-square.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* 顏色主題 */
+        .theme-0 {
+            background-color: #3b82f6;
+        }
+
+        /* Blue */
+        .theme-1 {
+            background-color: #f59e0b;
+        }
+
+        /* Amber */
+        .theme-2 {
+            background-color: #ef4444;
+        }
+
+        /* Red */
+        .theme-3 {
+            background-color: #8b5cf6;
+        }
+
+        /* Purple */
+        .theme-4 {
+            background-color: #10b981;
+        }
+
+        /* Emerald */
+
+        /* 算式顯示區 */
+        .math-step {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s ease;
+        }
+
+        .math-step.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen p-4 text-gray-800">
+
+    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-4xl border border-gray-100">
+        <h1 class="text-3xl font-bold text-center mb-2 text-gray-800">幾何輾轉相除法</h1>
+        <p class="text-center text-gray-500 mb-6">以正方形填滿長方形的過程來視覺化 GCD</p>
+
+        <!-- 狀態資訊面板 -->
+        <div
+            class="flex flex-col items-center mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[110px] justify-center">
+            <div id="status-text" class="text-xl font-medium text-gray-600 mb-2">
+                準備開始...
+            </div>
+            <div id="math-display" class="math-step text-2xl font-bold text-indigo-600 font-mono">
+                <!-- 算式顯示於此 -->
+            </div>
+        </div>
+
+        <!-- 視覺化區域 -->
+        <div class="flex justify-center items-center mb-6 min-h-[400px]">
+            <div id="rect-container" class="rect-container">
+                <!-- 正方形將由 JS 動態生成 -->
+            </div>
+        </div>
+
+        <!-- 圖例 -->
+        <div class="flex justify-center space-x-6 text-sm text-gray-600 mt-4 border-t pt-4">
+            <div class="flex items-center"><span class="w-3 h-3 bg-blue-500 rounded-sm mr-2"></span>步驟 1</div>
+            <div class="flex items-center"><span class="w-3 h-3 bg-yellow-500 rounded-sm mr-2"></span>步驟 2</div>
+            <div class="flex items-center"><span class="w-3 h-3 bg-red-500 rounded-sm mr-2"></span>步驟 3</div>
+            <div class="flex items-center">填滿的最小正方形邊長即為 GCD</div>
+        </div>
+    </div>
+
+    <script>
+        // 設定
+        const MAX_WIDTH = 700;  // 容器最大像素寬度
+        const MAX_HEIGHT = 400; // 容器最大像素高度
+        const ANIMATION_DELAY = 600; // 放置每個正方形的間隔
+
+        // DOM 元素
+        const container = document.getElementById('rect-container');
+        const statusText = document.getElementById('status-text');
+        const mathDisplay = document.getElementById('math-display');
+
+        // 狀態變數
+        let numA = 0; // 寬
+        let numB = 0; // 高
+        let scale = 1;
+
+        // 工具：暫停
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // 初始化數值與容器
+        function initScenario() {
+            // 設定 B 為較短邊 (Height)，數值範圍 30 ~ 70
+            numB = Math.floor(Math.random() * 40) + 30;
+
+            // 設定 A 為較長邊 (Width)，限制長寬比不超過 3:2 (即 1.5 倍)
+            // 隨機產生 1.1 ~ 1.5 倍之間的數值，確保長方形不會太細長
+            let ratio = 1.1 + (Math.random() * 0.4);
+            numA = Math.floor(numB * ratio);
+
+            // 確保兩邊不相等，避免直接結束
+            if (numA === numB) numA += 1;
+
+            // 計算縮放比例，讓長方形適應螢幕
+            const scaleX = MAX_WIDTH / numA;
+            const scaleY = MAX_HEIGHT / numB;
+            scale = Math.min(scaleX, scaleY);
+
+            // 設定容器尺寸
+            container.style.width = `${numA * scale}px`;
+            container.style.height = `${numB * scale}px`;
+            container.innerHTML = ''; // 清空內容
+
+            // 重置文字
+            statusText.textContent = `初始長方形：${numA} x ${numB}`;
+            mathDisplay.textContent = '';
+            mathDisplay.classList.remove('show');
+        }
+
+        // 創建正方形 DOM
+        function createSquare(size, x, y, colorIndex, text) {
+            const el = document.createElement('div');
+            el.className = `geo-square theme-${colorIndex % 5}`;
+
+            const pxSize = size * scale;
+            el.style.width = `${pxSize}px`;
+            el.style.height = `${pxSize}px`;
+            el.style.left = `${x * scale}px`;
+            el.style.top = `${y * scale}px`;
+
+            // 如果格子夠大才顯示數字
+            if (pxSize > 25) {
+                el.textContent = text;
+                el.style.fontSize = pxSize > 50 ? '1.2rem' : '0.8rem';
+            }
+
+            return el;
+        }
+
+        // 動畫主邏輯
+        async function runGeometricGCD() {
+            let w = numA; // 當前剩餘區域寬度
+            let h = numB; // 當前剩餘區域高度
+            let x = 0;    // 當前填入位置 X
+            let y = 0;    // 當前填入位置 Y
+            let stepIndex = 0; // 用於切換顏色
+
+            await sleep(1000);
+
+            while (h > 0 && w > 0) {
+                // 判斷長邊短邊
+                const isHorizontalCut = w > h;
+                // 如果 w > h，我們以 h 為邊長的正方形去填 (橫向填)
+                // 如果 h > w，我們以 w 為邊長的正方形去填 (縱向填)
+
+                const squareSize = Math.min(w, h);
+                const longSide = Math.max(w, h);
+                const count = Math.floor(longSide / squareSize);
+                const remainder = longSide % squareSize;
+
+                // 更新文字資訊
+                statusText.textContent = `以邊長 ${squareSize} 的正方形填入`;
+                mathDisplay.textContent = `${longSide} = ${squareSize} × ${count} + ${remainder}`;
+                mathDisplay.classList.add('show');
+
+                // 迴圈放置正方形
+                for (let i = 0; i < count; i++) {
+                    const sq = createSquare(squareSize, x, y, stepIndex, squareSize);
+                    container.appendChild(sq);
+
+                    // 強制重繪以觸發 transition
+                    sq.getBoundingClientRect();
+                    sq.classList.add('show');
+
+                    // 更新下一個正方形的位置
+                    if (isHorizontalCut) {
+                        x += squareSize;
+                    } else {
+                        y += squareSize;
+                    }
+
+                    await sleep(ANIMATION_DELAY);
+                }
+
+                // 更新剩餘空間的維度
+                if (isHorizontalCut) {
+                    w = remainder; // 寬度剩下餘數
+                } else {
+                    h = remainder; // 高度剩下餘數
+                }
+
+                stepIndex++;
+                await sleep(500);
+            }
+
+            // 結束
+            const gcd = Math.max(w, h) === 0 ? Math.max(numA, numB) : (w === 0 ? h : w); // 修正邏輯，最後填滿時 w或h 會變成0，上一步的 squareSize 其實就是 GCD
+            // 準確來說，迴圈結束時其中一邊為0，另一邊也是0(因為剛好填滿)，
+            // 所以 GCD 是「最後一次使用的 squareSize」。
+            // 我們可以從 DOM 最後一個元素取值，或者記錄下來。
+            // 這裡用更簡單的方式：
+            // 當 loop 結束，表示剛好填滿。GCD 就是前一次迭代的 squareSize。
+            // 這裡直接重新計算顯示即可。
+
+            // 實際上輾轉相除法最後一步是餘數為0。
+            // 在幾何中，這代表最後一個矩形被完全填滿。
+
+            // 為了獲取正確的 GCD 數值顯示，我們可以使用標準算法算一次
+            const finalGCD = calculateGCD(numA, numB);
+
+            statusText.innerHTML = `填滿完成！`;
+            mathDisplay.innerHTML = `最大公因數 (GCD) = <span class="text-green-600 scale-125 inline-block">${finalGCD}</span>`;
+
+            await sleep(4000);
+        }
+
+        function calculateGCD(a, b) {
+            return b === 0 ? a : calculateGCD(b, a % b);
+        }
+
+        // 主迴圈
+        async function runLoop() {
+            while (true) {
+                initScenario();
+                // 等待畫面渲染
+                await sleep(500);
+
+                await runGeometricGCD();
+
+                statusText.textContent = "演示結束，3秒後重新開始...";
+                await sleep(3000);
+            }
+        }
+
+        // 啟動
+        window.onload = () => {
+            runLoop();
+        };
+
+    </script>
+</body>
+
+</html>

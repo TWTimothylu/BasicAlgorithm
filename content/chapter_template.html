@@ -1,0 +1,51 @@
+<div class="content-area">
+    <h1>{{TITLE}}</h1>
+
+    <h2>1. 簡介</h2>
+    <p>{{INTRO}}</p>
+
+    <h2>2. 生活案例比喻</h2>
+    <ul>
+        {{ANALOGY_LIST}}
+    </ul>
+
+    <h2>3. 演算法運作步驟</h2>
+    <p>{{STEPS_INTRO}}</p>
+    <ol>
+        {{STEPS_LIST}}
+    </ol>
+
+    <!-- Animation Embed -->
+    <div style="margin: 2rem 0; text-align: center;">
+        <iframe src="{{ANIMATION_SRC}}" width="100%" height="500px"
+            style="border: 3px solid black; border-radius: 6px; box-shadow: 4px 4px 0px rgba(0,0,0,1);"></iframe>
+        <p style="color: #666; font-size: 0.9em; margin-top: 0.5rem;">{{ANIMATION_CAPTION}}</p>
+    </div>
+
+    <h2>4. 程式碼實作</h2>
+
+    <h3>Python 實作範例</h3>
+
+    <pre><code class="language-python">{{CODE_PYTHON}}</code></pre>
+
+    <h2>5. 複雜度分析</h2>
+
+    <ul>
+        <li><strong>時間複雜度 (Time Complexity)</strong>：
+            <ul>
+                {{TIME_COMPLEXITY}}
+            </ul>
+        </li>
+        <li><strong>空間複雜度 (Space Complexity)</strong>：
+            <ul>
+                {{SPACE_COMPLEXITY}}
+            </ul>
+        </li>
+    </ul>
+
+    <h2>6. 特性總結與適用時機</h2>
+
+    <ul>
+        {{SUMMARY_LIST}}
+    </ul>
+</div>

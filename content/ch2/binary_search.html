@@ -1,0 +1,92 @@
+<div class="content-area">
+    <h1>二元搜尋 (Binary Search) 演算法教學</h1>
+
+    <h2>1. 簡介</h2>
+    <p>二元搜尋（或稱折半搜尋）是一種在<strong>已排序</strong>資料中尋找目標值的演算法。它的核心概念是每次比較都將搜尋範圍縮減一半，因此效率遠高於線性搜尋。</p>
+
+    <h2>2. 生活案例比喻</h2>
+    <ul>
+        <li><strong>查字典</strong>：當你要查一個單字（如 "Orange"）時，你不會從第一頁開始翻。你會先翻到中間，如果看到的是 "M" 開頭的字，你知道 "O" 在後面，所以你只會往後半部找。</li>
+        <li><strong>終極密碼 (猜數字遊戲)</strong>：老師心裡想一個 1 到 100 的數字。你猜 50，老師說「太小了」，你就知道答案在 51 到 100 之間。下一把你會猜 75 (51~100 的中間)。
+        </li>
+    </ul>
+
+    <h2>3. 演算法運作步驟</h2>
+    <p>假設要在<strong>已排序</strong>陣列 <code>arr</code> 中尋找目標值 <code>target</code>：</p>
+    <ol>
+        <li>設定搜尋範圍：左邊界 <code>L = 0</code>，右邊界 <code>R = arr.length - 1</code>。</li>
+        <li>當 <code>L <= R</code> 時，執行以下步驟：
+            <ul>
+                <li>計算中間位置 <code>M = (L + R) // 2</code>。</li>
+                <li>若 <code>arr[M] == target</code>：找到目標，回傳 <code>M</code>。</li>
+                <li>若 <code>arr[M] < target</code>：目標在右半邊，將左邊界移到 <code>L = M + 1</code>。</li>
+                <li>若 <code>arr[M] > target</code>：目標在左半邊，將右邊界移到 <code>R = M - 1</code>。</li>
+            </ul>
+        </li>
+        <li>若迴圈結束仍未找到，回傳 -1。</li>
+    </ol>
+
+    <!-- Animation Embed -->
+    <div style="margin: 2rem 0; text-align: center;">
+        <iframe src="content/ch2/animation/binary_search_animation.html" width="100%" height="500px"
+            style="border: 3px solid black; border-radius: 6px; box-shadow: 4px 4px 0px rgba(0,0,0,1);"></iframe>
+        <p style="color: #666; font-size: 0.9em; margin-top: 0.5rem;">二元搜尋動畫演示</p>
+    </div>
+
+    <h2>4. 程式碼實作</h2>
+
+    <h3>Python 實作範例 (迴圈版)</h3>
+
+    <pre><code class="language-python">def binary_search(arr, target):
+    """
+    二元搜尋函式 (Iterative)
+    arr 必須是已排序的串列
+    """
+    left, right = 0, len(arr) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        if arr[mid] == target:
+            return mid  # 找到目標
+        elif arr[mid] < target:
+            left = mid + 1  # 往右半邊找
+        else:
+            right = mid - 1  # 往左半邊找
+            
+    return -1  # 未找到
+
+# 測試區塊
+data = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+target = 23
+
+result = binary_search(data, target)
+if result != -1:
+    print(f"目標值位於索引: {result}")
+else:
+    print("未找到目標值")
+</code></pre>
+
+    <h2>5. 複雜度分析</h2>
+
+    <ul>
+        <li><strong>時間複雜度 (Time Complexity)</strong>：
+            <ul>
+                <li><strong>最佳情況</strong>：$O(1)$。第一次切半就找到中間值。</li>
+                <li><strong>最差/平均情況</strong>：$O(\log N)$。每次搜尋範圍都減半，對數級別的成長非常緩慢，效率極高。</li>
+            </ul>
+        </li>
+        <li><strong>空間複雜度 (Space Complexity)</strong>：
+            <ul>
+                <li>$O(1)$ (迴圈版)。只使用幾個變數紀錄邊界。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>6. 特性總結與適用時機</h2>
+
+    <ul>
+        <li><strong>先決條件</strong>：資料<strong>必須已排序</strong>。如果資料未排序，必須先花 $O(N \log N)$ 排序才能使用。</li>
+        <li><strong>適用情境</strong>：資料量大且需要頻繁搜尋時。例如 $N=1,000,000$ 時，線性搜尋平均需 50 萬次比較，二元搜尋僅需約 20 次。</li>
+        <li><strong>APCS 考試應用</strong>：常見於第 3 題。當 $N$ 很大 ($10^5$ 以上) 或題目有「單調性」特徵時，優先考慮二元搜尋。</li>
+    </ul>
+</div>

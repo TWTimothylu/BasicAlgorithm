@@ -1,0 +1,87 @@
+<div class="content-area">
+    <h1>線性搜尋 (Linear Search) 演算法教學</h1>
+
+    <h2>1. 簡介</h2>
+    <p>線性搜尋是最基礎的搜尋演算法。其運作方式為：在一個資料集合中，從頭到尾逐一檢查每個元素，直到找到目標值，或檢查完所有元素為止。此演算法不需要資料事先排序。</p>
+
+
+    <h2>2. 生活案例比喻</h2>
+    <ul>
+        <li><strong>在未整理的書架上找書</strong>：書架上的書沒有依拼音或類別排列。你必須從第一本書開始，一本一本地看書名，直到找到你要的那本書。</li>
+        <li><strong>在收據上核對特定品項</strong>：拿到一張長長的超市購物明細，為了確認是否買了「牛奶」，你從明細的第一項開始逐行往下核對，直到看到「牛奶」或看完最後一項。</li>
+        <li><strong>找尋特定花色的撲克牌</strong>：將一副洗亂的撲克牌攤開在桌面上，為了找出「黑桃 A」，你的視線必須從一端開始，逐張檢查每張牌的花色與數字。</li>
+    </ul>
+
+    <h2>3. 演算法運作步驟</h2>
+    <p>假設要在陣列 <code>arr</code> 中尋找目標值 <code>target</code>：</p>
+    <ol>
+        <li>設定索引值 <code>i = 0</code>。</li>
+        <li>檢查 <code>arr[i]</code> 是否等於 <code>target</code>。
+            <ul>
+                <li>若等於：搜尋成功，回傳索引值 <code>i</code>。</li>
+                <li>若不等於：將索引值 <code>i</code> 加 1。</li>
+            </ul>
+        </li>
+        <li>重複步驟 2，直到 <code>i</code> 超出陣列範圍。</li>
+        <li>若走訪完畢仍未找到，回傳 -1（表示未找到）。</li>
+    </ol>
+
+    <!-- Animation Embed -->
+    <div style="margin: 2rem 0; text-align: center;">
+        <iframe src="content/ch1/animation/linear_search_animation.html" width="100%" height="500px"
+            style="border: 3px solid black; border-radius: 6px; box-shadow: 4px 4px 0px rgba(0,0,0,1);"></iframe>
+        <p style="color: #666; font-size: 0.9em; margin-top: 0.5rem;">線性搜尋動畫演示</p>
+    </div>
+
+    <h2>4. 程式碼實作</h2>
+
+    <h3>Python 實作範例</h3>
+
+    <pre><code class="language-python">def linear_search(arr, target):
+    """
+    線性搜尋函式
+    回傳目標值的索引，若無則回傳 -1
+    """
+    for i in range(len(arr)):
+        if arr[i] == target:
+            return i  # 找到目標，回傳索引
+    return -1  # 未找到目標
+
+# 測試區塊
+data = [23, 1, 45, 17, 9, 88]
+target = 17
+
+result = linear_search(data, target)
+
+if result != -1:
+    print(f"目標值位於索引: {result}")
+else:
+    print("未找到目標值")
+</code></pre>
+
+    <h2>5. 複雜度分析</h2>
+
+    <ul>
+        <li><strong>時間複雜度 (Time Complexity)</strong>：
+            <ul>
+                <li><strong>最佳情況 (Best Case)</strong>：$O(1)$。目標剛好在陣列的第一個位置。</li>
+                <li><strong>最差情況 (Worst Case)</strong>：$O(N)$。目標在陣列的最後一個位置，或是目標根本不存在陣列中。需走訪全部 $N$ 個元素。</li>
+                <li><strong>平均情況 (Average Case)</strong>：$O(N)$。</li>
+            </ul>
+        </li>
+        <li><strong>空間複雜度 (Space Complexity)</strong>：
+            <ul>
+                <li>$O(1)$。只需要常數級別的額外變數（如迴圈索引），不需額外配置記憶體空間。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>6. 特性總結與適用時機</h2>
+
+    <ul>
+        <li><strong>優點</strong>：實作簡單直觀；不需要資料預先排序；適用於資料結構支援循序存取（如陣列、鏈結串列）。</li>
+        <li><strong>缺點</strong>：當資料量（$N$）很大時，執行效率極低。</li>
+        <li><strong>APCS 考試應用</strong>：適用於資料量 $N \le 10^3$ 的情況（常見於實作題第 1、2 題）。若資料量達到 $N \ge 10^5$，應考慮先排序後使用二元搜尋（Binary
+            Search）或使用雜湊表（Hash Table）以避免執行時間超時（TLE）。</li>
+    </ul>
+</div>

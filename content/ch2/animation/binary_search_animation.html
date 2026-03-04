@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二元搜尋動畫</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .element-box {
+            transition: all 0.4s ease;
+        }
+
+        .dimmed {
+            opacity: 0.3;
+            background-color: #e2e8f0;
+            /* slate-200 */
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen flex flex-col items-center justify-center font-sans text-slate-800 p-4">
+
+    <div class="mb-8 text-center">
+        <h1 class="text-2xl md:text-3xl font-bold mb-2">二元搜尋 (Binary Search)</h1>
+        <p class="text-base md:text-lg text-slate-600">尋找目標值：<span class="font-bold text-blue-600 text-xl"
+                id="target-value"></span></p>
+    </div>
+
+    <!-- 陣列容器 -->
+    <div id="array-container" class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8 w-full max-w-5xl"></div>
+
+    <!-- 狀態顯示 -->
+    <div class="h-20 flex flex-col items-center justify-center space-y-2">
+        <p id="range-info" class="text-sm md:text-base text-slate-500 font-mono"></p>
+        <p id="status-text" class="text-base md:text-lg font-medium tracking-wide text-center text-slate-800"></p>
+    </div>
+
+    <script>
+        // 設定已排序的資料與目標
+        const arrayData = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91];
+        const targetNumber = 23;
+        const animationDelayMs = 1500;
+
+        document.getElementById('target-value').innerText = targetNumber;
+
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function runBinarySearchAnimation() {
+            const container = document.getElementById('array-container');
+            const statusText = document.getElementById('status-text');
+            const rangeInfo = document.getElementById('range-info');
+
+            // 重置
+            container.innerHTML = '';
+            statusText.className = 'text-base md:text-lg font-medium tracking-wide text-center text-slate-800';
+            statusText.innerText = "準備開始搜尋...";
+            rangeInfo.innerText = "";
+
+            // 初始化 DOM
+            const elementDivs = [];
+            arrayData.forEach((num, index) => {
+                const el = document.createElement('div');
+                el.className = 'element-box flex flex-col items-center justify-center bg-white border-2 border-slate-300 rounded-lg shadow-sm w-[clamp(2.5rem,8vw,4.5rem)] h-[clamp(2.5rem,8vw,4.5rem)] relative';
+
+                // 索引標籤
+                const indexLabel = document.createElement('span');
+                indexLabel.className = 'absolute -top-6 text-xs text-slate-400 font-mono';
+                indexLabel.innerText = index;
+                el.appendChild(indexLabel);
+
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'font-bold text-[clamp(1rem,3vw,1.8rem)]';
+                valueSpan.innerText = num;
+
+                el.appendChild(valueSpan);
+                container.appendChild(el);
+                elementDivs.push(el);
+            });
+
+            await sleep(1000);
+
+            let left = 0;
+            let right = arrayData.length - 1;
+
+            while (left <= right) {
+                const mid = Math.floor((left + right) / 2);
+
+                // 更新狀態顯示
+                rangeInfo.innerText = `L=${left}, R=${right}, Mid=${mid}`;
+                statusText.innerText = `檢查中間位置 ${mid} (數值: ${arrayData[mid]})`;
+
+                // 視覺化：標示範圍與中間值
+                elementDivs.forEach((el, idx) => {
+                    // Reset base styles
+                    el.className = 'element-box flex flex-col items-center justify-center border-2 rounded-lg shadow-sm w-[clamp(2.5rem,8vw,4.5rem)] h-[clamp(2.5rem,8vw,4.5rem)] relative';
+
+                    if (idx < left || idx > right) {
+                        // 範圍外變淡
+                        el.classList.add('dimmed', 'border-slate-200');
+                    } else if (idx === mid) {
+                        // 中間值高亮 (黃色)
+                        el.classList.add('bg-yellow-100', 'border-yellow-400', 'scale-110', 'shadow-md', 'z-10');
+                    } else {
+                        // 範圍內正常顯示
+                        el.classList.add('bg-white', 'border-slate-300');
+                    }
+                });
+
+                await sleep(animationDelayMs);
+
+                if (arrayData[mid] === targetNumber) {
+                    // 找到目標 (綠色)
+                    elementDivs[mid].className = 'element-box flex flex-col items-center justify-center bg-emerald-500 border-2 border-emerald-600 text-white scale-110 shadow-lg w-[clamp(2.5rem,8vw,4.5rem)] h-[clamp(2.5rem,8vw,4.5rem)] relative z-20';
+                    statusText.innerText = `搜尋完成：在索引 ${mid} 找到目標值 ${targetNumber}。`;
+                    statusText.classList.remove('text-slate-800');
+                    statusText.classList.add('text-emerald-600', 'font-bold');
+                    return;
+                } else if (arrayData[mid] < targetNumber) {
+                    statusText.innerText = `${arrayData[mid]} < ${targetNumber}，目標在右半邊。`;
+                    left = mid + 1;
+                } else {
+                    statusText.innerText = `${arrayData[mid]} > ${targetNumber}，目標在左半邊。`;
+                    right = mid - 1;
+                }
+
+                await sleep(animationDelayMs);
+            }
+
+            statusText.innerText = `搜尋結束：陣列中不存在目標值 ${targetNumber}。`;
+            statusText.classList.remove('text-slate-800');
+            statusText.classList.add('text-red-500', 'font-bold');
+        }
+
+        async function loopAnimation() {
+            while (true) {
+                await runBinarySearchAnimation();
+                await sleep(3000);
+            }
+        }
+
+        window.onload = loopAnimation;
+    </script>
+</body>
+
+</html>

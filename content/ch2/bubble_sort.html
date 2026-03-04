@@ -1,0 +1,115 @@
+<div class="content-area">
+    <h1>氣泡排序 (Bubble Sort) 演算法教學</h1>
+
+    <h2>1. 簡介</h2>
+    <p>氣泡排序是一種簡單直觀的排序演算法。它重複地走訪要排序的數列，一次比較兩個相鄰的元素，如果不符合順序（例如：前大後小），就將它們交換過來。走訪數列的工作是重複進行的，直到沒有再需要交換，也就是說該數列已經排序完成。</p>
+    <p>因為越大的元素會經由交換慢慢「浮」到數列的頂端（尾端），就像碳酸飲料中的氣泡浮起來一樣，故名氣泡排序。</p>
+
+    <h2>2. 生活案例比喻</h2>
+    <ul>
+        <li><strong>體育課排隊</strong>：老師要求全班同學依照身高由矮到高排成一列。老師從第一位同學開始，比較他和後一位同學的身高。如果前面比後面高，就請他們交換位置。這樣一路比到最後，最高的同學就會被換到隊伍的最後面。重複這個動作幾次，全班就排好隊了。
+        </li>
+        <li><strong>整理撲克牌</strong>：手上有一把雜亂的牌，你從左邊開始看，如果左邊的牌比右邊大，就交換它們。這樣一輪看完，最大的牌會跑到最右邊。</li>
+    </ul>
+
+    <h2>3. 演算法運作步驟</h2>
+    <p>假設要將陣列 <code>arr</code> 由小到大排序 (長度為 $N$)：</p>
+    <ol>
+        <li><strong>第一輪</strong>：從索引 $0$ 開始，比較 <code>arr[j]</code> 和 <code>arr[j+1]</code>。
+            <ul>
+                <li>若 <code>arr[j] &gt; arr[j+1]</code>，則交換兩者。</li>
+                <li>索引 $j$ 往後移，直到 $N-2$ (比對最後一對)。
+                <li>第一輪結束後，最大的數字會被移動到 <code>arr[N-1]</code> 的位置。</li>
+            </ul>
+        </li>
+        <li><strong>第二輪</strong>：重複上述步驟，但只需比對到 $N-2$ (因為最後一個已經是最大的了)。</li>
+        <li><strong>重複執行</strong>：第 $i$ 輪只需比對到 $N-1-i$。</li>
+        <li><strong>終止條件</strong>：執行 $N-1$ 輪，或某某一輪完全沒有發生任何交換（代表已排序完成）。</li>
+    </ol>
+
+    <!-- Animation Embed -->
+    <div style="margin: 2rem 0; text-align: center;">
+        <iframe src="content/ch2/animation/bubble_sort_animation.html" width="100%" height="800px"
+            style="border: 3px solid black; border-radius: 6px; box-shadow: 4px 4px 0px rgba(0,0,0,1);"></iframe>
+        <p style="color: #666; font-size: 0.9em; margin-top: 0.5rem;">氣泡排序動畫演示</p>
+    </div>
+
+    <h2>4. 程式碼實作</h2>
+
+    <h3>Python 實作範例</h3>
+    <p>氣泡排序有一個常見的優化：使用 <code>swapped</code> 旗標。如果在某一輪中完全沒有發生交換，代表陣列已經排序好，可以提早結束迴圈。</p>
+
+    <pre><code class="language-python">def bubble_sort(arr):
+    n = len(arr)
+    
+    # 總共需要進行 n-1 輪
+    for i in range(n - 1):
+        swapped = False  # 優化旗標
+        
+        # 每一輪比較到 n-1-i 即可，因為後面的 i 個元素已經排好了
+        for j in range(n - 1 - i):
+            # 如果前一個比後一個大，則交換 (由小到大排序)
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+        
+        # 如果這一輪完全沒交換，代表已經排序完成，提早結束
+        if not swapped:
+            break
+            
+    return arr
+
+# 測試區塊
+data = [64, 34, 25, 12, 22, 11, 90]
+print(f"排序前: {data}")
+
+sorted_data = bubble_sort(data)
+print(f"排序後: {sorted_data}")
+</code></pre>
+
+    <h2>5. 複雜度分析</h2>
+    <ul>
+        <li><strong>時間複雜度 (Time Complexity)</strong>：
+            <ul>
+                <li><strong>最佳情況 (Best Case)</strong>：$O(N)$。當陣列已經是排序好的狀態時，配合 <code>swapped</code> 旗標，只需掃描一輪即可結束。</li>
+                <li><strong>最差情況 (Worst Case)</strong>：$O(N^2)$。當陣列是反序排列時，每一輪都要進行最大次數的交換。</li>
+                <li><strong>平均情況 (Average Case)</strong>：$O(N^2)$。</li>
+            </ul>
+        </li>
+        <li><strong>空間複雜度 (Space Complexity)</strong>：
+            <ul>
+                <li>$O(1)$。屬於原地排序 (In-place Sort)，只需要常數級別的額外變數。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>6. 特性總結與適用時機</h2>
+    <ul>
+        <li><strong>穩定性 (Stability)</strong>：<strong>穩定</strong>。當兩個元素相等時，不會交換它們的位置，因此相對順序保持不變。</li>
+        <li><strong>優點</strong>：實作簡單，程式碼短，概念好理解。</li>
+        <li><strong>缺點</strong>：效率非常低。當資料量 $N$ 很大時，與快速排序 ($O(N \log N)$) 相比慢非常多。</li>
+        <li><strong>APCS 考試應用</strong>：
+            <ul>
+                <li><strong>第 1、2 題</strong>：可能會考氣泡排序的運作邏輯（例如問你第三輪交換後陣列長怎樣），或是要求實作簡單排序。</li>
+                <li><strong>第 3、4 題</strong>：<strong>絕對不要使用氣泡排序</strong>。當 $N \ge 5000$ 時，氣泡排序幾乎保證會超時 (TLE)。請使用 Python
+                    內建的 <code>sort()</code> 或 <code>sorted()</code> (底層為 Timsort，效率為 $O(N \log N)$)。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>7. LeetCode 實戰練習</h2>
+    <p>雖然 LeetCode 很少直接要求「使用氣泡排序」，但以下題目可以用來練習排序概念或陣列操作：</p>
+    <ul>
+        <li><strong>基礎題 (Basic)</strong>：
+            <ul>
+                <li><a href="https://leetcode.com/problems/sort-colors/" target="_blank">75. Sort Colors</a>：雖然最佳解是 Two
+                    Pointers，但此題範圍小，可以用氣泡排序練習（不過面試時不建議）。</li>
+                <li><a href="https://leetcode.com/problems/sort-an-array/" target="_blank">912. Sort an
+                        Array</a>：標準排序題。若用氣泡排序解此題會 <strong>TLE (Time Limit Exceeded)</strong>，這是體驗 $O(N^2)$ 與 $O(N \log
+                    N)$ 差異的好機會。</li>
+                <li><a href="https://leetcode.com/problems/height-checker/" target="_blank">1051. Height
+                        Checker</a>：檢查學生是否按身高排列，適合初學者練習排序邏輯。</li>
+            </ul>
+        </li>
+    </ul>
+</div>
