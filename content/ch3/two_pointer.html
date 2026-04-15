@@ -1,0 +1,129 @@
+<div class="content-area">
+    <h1>雙指標 (Two Pointers) 演算法教學</h1>
+
+    <h2>1. 簡介</h2>
+    <p>雙指標（Two Pointers）是一種在陣列或字串中利用兩個變數（指標）協同走訪資料的演算法策略。這兩個指標可以從不同的起始位置出發，以不同的步長或方向移動。</p>
+    <p>其核心價值在於將原本需要巢狀迴圈（$O(N^2)$）的窮舉搜尋，最佳化為單次走訪（$O(N)$），大幅降低時間複雜度。</p>
+    <p>常見的雙指標模式有三種：</p>
+    <ol>
+        <li><strong>相向雙指標 (Opposite Direction)</strong>：一個在頭，一個在尾，往中間夾擊（常用於已排序陣列）。</li>
+        <li><strong>同向雙指標 (Same Direction)</strong>：兩個都在頭，通常一個快一個慢（常與滑動視窗 Sliding Window 結合）。</li>
+        <li><strong>快慢指標 (Fast & Slow Pointers)</strong>：步長不同，常用於鏈結串列（判斷循環或找中間點）。</li>
+    </ol>
+
+    <h2>2. 生活案例比喻</h2>
+    <ul>
+        <li><strong>相向雙指標 - 湊整數結帳</strong>：假設你在特賣會，衣服價格已經由低到高排列好。你有 1000 元的折價券，必須買剛好兩件衣服把券用完。你先拿最便宜和最貴的衣服加起來看，如果超過 1000，就把最貴的放回去，換第二貴的；如果不到 1000，就把最便宜的放回去，換第二便宜的。如此夾擊，很快就能找出剛好 1000 元的組合。</li>
+        <li><strong>快慢指標 - 操場跑步</strong>：兩個人在環型操場跑步，A 的速度是 B 的兩倍。如果操場是環型的（有迴圈），跑得快的 A 遲早會從背後追上並超越 B（套圈）。這常用來判斷路線中是否有「死循環」。</li>
+    </ul>
+
+    <h2>3. 演算法運作步驟 <span style="font-size: 0.8em; color: #666;">(以相向雙指標尋找目標和為例)</span></h2>
+    <p>假設要在<strong>已遞增排序</strong>的陣列 <code>arr</code> 中，尋找兩個數字使其總和等於 <code>target</code>：</p>
+    <ol>
+        <li>設定左指標 <code>left = 0</code>（指向最小值）。</li>
+        <li>設定右指標 <code>right = 陣列長度 - 1</code>（指向最大值）。</li>
+        <li>當 <code>left &lt; right</code> 時，執行以下判斷：
+            <ul>
+                <li>計算當前總和 <code>current_sum = arr[left] + arr[right]</code>。</li>
+                <li>若 <code>current_sum == target</code>：找到答案，回傳兩個指標的位置。</li>
+                <li>若 <code>current_sum &lt; target</code>：代表總和太小，將左指標往右移 (<code>left += 1</code>)，以換取更大的數字。</li>
+                <li>若 <code>current_sum &gt; target</code>：代表總和太大，將右指標往左移 (<code>right -= 1</code>)，以換取更小的數字。</li>
+            </ul>
+        </li>
+        <li>若迴圈結束仍未找到，回傳失敗訊息。</li>
+    </ol>
+
+    <!-- Animation Embed -->
+    <div style="margin: 2rem 0; text-align: center;">
+        <iframe src="content/ch3/animation/two_pointer.html" width="100%" height="500px"
+            style="border: 3px solid black; border-radius: 6px; box-shadow: 4px 4px 0px rgba(0,0,0,1);"></iframe>
+        <p style="color: #666; font-size: 0.9em; margin-top: 0.5rem;">相向雙指標尋找目標和動畫展示</p>
+    </div>
+
+    <h2>4. 程式碼實作</h2>
+
+    <h3>Python 實作範例 (相向雙指標 - Two Sum II)</h3>
+
+    <pre><code class="language-python">def two_sum_sorted(arr, target):
+    """
+    相向雙指標：在已排序陣列中尋找兩數之和等於 target
+    """
+    left = 0
+    right = len(arr) - 1
+    
+    while left &lt; right:
+        current_sum = arr[left] + arr[right]
+        
+        if current_sum == target:
+            return [left, right]  # 找到目標組合的索引
+        elif current_sum &lt; target:
+            left += 1             # 總和太小，左指標右移
+        else:
+            right -= 1            # 總和太大，右指標左移
+            
+    return [-1, -1]  # 未找到
+
+# 測試區塊
+# 注意：陣列必須是已排序的
+data = [2, 7, 11, 15, 20]
+target_value = 18
+
+result = two_sum_sorted(data, target_value)
+if result != [-1, -1]:
+    print(f"找到目標和，索引為: {result[0]} 和 {result[1]}")
+    print(f"數值為: {data[result[0]]} + {data[result[1]]} = {target_value}")
+else:
+    print("未找到符合的組合")</code></pre>
+
+    <h2>5. 複雜度分析</h2>
+
+    <ul>
+        <li><strong>時間複雜度 (Time Complexity)</strong>：
+            <ul>
+                <li>$O(N)$。兩個指標最多共同走過整個陣列一次，沒有任何元素被重複走訪。相較於雙層迴圈的 $O(N^2)$，有極大的效能提升。</li>
+            </ul>
+        </li>
+        <li><strong>空間複雜度 (Space Complexity)</strong>：
+            <ul>
+                <li>$O(1)$。只需要常數個變數（<code>left</code>, <code>right</code>）來記錄位置，不需要額外配置陣列或記憶體。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>6. 特性總結與適用時機</h2>
+
+    <ul>
+        <li><strong>先決條件</strong>：若使用相向雙指標尋找數值組合，陣列<strong>通常必須先經過排序</strong>。</li>
+        <li><strong>適用題型</strong>：
+            <ul>
+                <li>求特定總和/差值的組合。</li>
+                <li>陣列原地操作（例如移除特定元素、將零移到末端）。</li>
+                <li>迴文（Palindrome）判斷（從頭尾向中間比對字元）。</li>
+            </ul>
+        </li>
+        <li><strong>APCS 考試應用</strong>：
+            <ul>
+                <li>雙指標是 APCS 實作題 <strong>第 3 題</strong> 最常見的核心技巧之一。通常會與「排序」、「貪婪演算法」或「滑動視窗」結合出現，用來將原本會 Time Limit Exceeded (TLE) 的暴力解最佳化。</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h2>7. LeetCode 實戰練習</h2>
+
+    <ul>
+        <li><strong>基礎題 (Basic)</strong>：
+            <ul>
+                <li><a href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/" target="_blank">167. Two Sum II - Input Array Is Sorted</a>：最經典的相向雙指標題型。</li>
+                <li><a href="https://leetcode.com/problems/reverse-string/" target="_blank">344. Reverse String</a>：原地反轉字串（頭尾指標交換）。</li>
+                <li><a href="https://leetcode.com/problems/move-zeroes/" target="_blank">283. Move Zeroes</a>：同向雙指標，將非零元素往前覆蓋。</li>
+            </ul>
+        </li>
+        <li><strong>進階應用題 (Advanced)</strong>：
+            <ul>
+                <li><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container With Most Water</a>：經典相向雙指標，透過貪婪策略決定移動哪一邊的指標。</li>
+                <li><a href="https://leetcode.com/problems/3sum/" target="_blank">15. 3Sum</a>：將 3Sum 降維成 2Sum 後套用雙指標。</li>
+                <li><a href="https://leetcode.com/problems/linked-list-cycle/" target="_blank">141. Linked List Cycle</a>：經典快慢指標（Floyd's Tortoise and Hare），判斷鏈結串列是否有循環。</li>
+            </ul>
+        </li>
+    </ul>
+</div>

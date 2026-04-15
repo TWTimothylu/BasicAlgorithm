@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雙指標 (Two Sum) 動畫</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* 陣列元素樣式 */
+        .array-box {
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        /* 排除的元素 (淡化) */
+        .dimmed {
+            opacity: 0.3;
+            background-color: #e5e7eb !important;
+            border-color: #d1d5db !important;
+            color: #9ca3af !important;
+            transform: scale(0.95);
+        }
+
+        /* 指標選中狀態 */
+        .ptr-left {
+            border-color: #3b82f6 !important;
+            /* Blue */
+            background-color: #eff6ff;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .ptr-right {
+            border-color: #ef4444 !important;
+            /* Red */
+            background-color: #fef2f2;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+            transform: translateY(-5px);
+        }
+
+        /* 找到目標狀態 */
+        .found {
+            background-color: #10b981 !important;
+            /* Green */
+            color: white !important;
+            border-color: #059669 !important;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+            z-index: 10;
+        }
+
+        /* 指標標籤 (L/R) */
+        .ptr-label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            font-size: 0.875rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .ptr-left .ptr-label-left {
+            opacity: 1;
+            background-color: #3b82f6;
+        }
+
+        .ptr-right .ptr-label-right {
+            opacity: 1;
+            background-color: #ef4444;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen p-4 text-gray-800">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-4xl border border-gray-100">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">相向雙指標 (Two Sum II)</h1>
+
+        <!-- 狀態資訊面板 -->
+        <div
+            class="flex flex-col items-center mb-10 bg-gray-50 p-6 rounded-lg border border-gray-200 min-h-[120px] justify-center">
+            <div class="text-lg mb-2">
+                <span class="text-gray-500">尋找目標和 (Target):</span>
+                <span id="target-display" class="text-3xl font-bold text-indigo-600 ml-2">--</span>
+            </div>
+            <div id="status-text" class="text-xl font-bold text-gray-700">
+                準備開始...
+            </div>
+            <div id="sub-status" class="text-md text-gray-500 mt-2 font-mono"></div>
+        </div>
+
+        <!-- 視覺化區域 -->
+        <div class="relative mb-12">
+            <!-- 陣列盒子容器 -->
+            <div id="array-container" class="flex justify-center space-x-3 mb-8">
+                <!-- 由 JS 生成 -->
+            </div>
+        </div>
+
+        <!-- 圖例 -->
+        <div class="flex justify-center space-x-6 text-sm text-gray-600 mt-4 border-t pt-4">
+            <div class="flex items-center"><span class="w-3 h-3 bg-blue-500 rounded-sm mr-2"></span>左指標 (Left)</div>
+            <div class="flex items-center"><span class="w-3 h-3 bg-red-500 rounded-sm mr-2"></span>右指標 (Right)</div>
+            <div class="flex items-center"><span class="w-3 h-3 bg-green-500 rounded-sm mr-2"></span>符合目標</div>
+        </div>
+    </div>
+
+    <script>
+        // 設定參數
+        const ARRAY_SIZE = 10;
+        const ANIMATION_SPEED = 1500; // 步驟間隔毫秒
+
+        // DOM 元素
+        const container = document.getElementById('array-container');
+        const targetDisplay = document.getElementById('target-display');
+        const statusText = document.getElementById('status-text');
+        const subStatus = document.getElementById('sub-status');
+
+        // 狀態變數
+        let dataArray = [];
+        let targetValue = 0;
+        let elements = []; // 儲存 DOM 元素
+
+        // 工具：暫停
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // 產生已排序陣列與目標值
+        function generateScenario() {
+            dataArray = [];
+            // 產生遞增的隨機數列
+            let current = Math.floor(Math.random() * 5) + 1;
+            for (let i = 0; i < ARRAY_SIZE; i++) {
+                dataArray.push(current);
+                current += Math.floor(Math.random() * 8) + 1;
+            }
+
+            // 確保有解：隨機挑選兩個不同索引的數字作為目標和
+            const idx1 = Math.floor(Math.random() * ARRAY_SIZE);
+            let idx2 = Math.floor(Math.random() * ARRAY_SIZE);
+            while (idx1 === idx2) {
+                idx2 = Math.floor(Math.random() * ARRAY_SIZE);
+            }
+            targetValue = dataArray[idx1] + dataArray[idx2];
+        }
+
+        // 初始化畫面
+        function initDisplay() {
+            container.innerHTML = '';
+            elements = [];
+            generateScenario();
+
+            targetDisplay.textContent = targetValue;
+            statusText.textContent = "初始化陣列...";
+            subStatus.textContent = "";
+
+            // 渲染陣列
+            dataArray.forEach((val, index) => {
+                const box = document.createElement('div');
+                box.className = 'array-box flex items-center justify-center w-14 h-14 bg-white border-2 border-gray-300 rounded-lg font-bold text-gray-700 text-xl shadow-sm';
+                box.textContent = val;
+
+                // 左指標標籤
+                const labelLeft = document.createElement('div');
+                labelLeft.className = 'ptr-label ptr-label-left';
+                labelLeft.textContent = 'Left';
+                box.appendChild(labelLeft);
+
+                // 右指標標籤
+                const labelRight = document.createElement('div');
+                labelRight.className = 'ptr-label ptr-label-right';
+                labelRight.textContent = 'Right';
+                box.appendChild(labelRight);
+
+                container.appendChild(box);
+                elements.push(box);
+            });
+        }
+
+        // 清除指標樣式
+        function clearPointers() {
+            elements.forEach(el => {
+                el.classList.remove('ptr-left', 'ptr-right');
+            });
+        }
+
+        // 動畫主邏輯 (對應 Python 程式碼)
+        async function twoSumAnimation() {
+            let left = 0;
+            let right = ARRAY_SIZE - 1;
+
+            await sleep(1000);
+
+            while (left < right) {
+                clearPointers();
+
+                // 設定視覺指標
+                elements[left].classList.add('ptr-left');
+                elements[right].classList.add('ptr-right');
+
+                // 計算當前總和
+                const currentSum = dataArray[left] + dataArray[right];
+                statusText.innerHTML = `計算總和：<span class="text-blue-600">${dataArray[left]}</span> + <span class="text-red-600">${dataArray[right]}</span> = <span class="text-purple-600">${currentSum}</span>`;
+                subStatus.textContent = "判斷中...";
+
+                await sleep(ANIMATION_SPEED);
+
+                if (currentSum === targetValue) {
+                    // 找到目標
+                    statusText.textContent = "找到目標和！";
+                    subStatus.innerHTML = `索引 ${left} 和 ${right}：${dataArray[left]} + ${dataArray[right]} = ${targetValue}`;
+
+                    elements[left].classList.remove('ptr-left');
+                    elements[right].classList.remove('ptr-right');
+                    elements[left].classList.add('found');
+                    elements[right].classList.add('found');
+
+                    await sleep(4000);
+                    return; // 結束
+                }
+                else if (currentSum < targetValue) {
+                    // 總和太小，左指標右移
+                    statusText.textContent = `總和 ${currentSum} < 目標 ${targetValue}`;
+                    subStatus.textContent = "總和太小，左指標 (Left) 右移以增大數值";
+
+                    // 淡化被排除的元素
+                    elements[left].classList.add('dimmed');
+                    left++;
+                    await sleep(ANIMATION_SPEED);
+                }
+                else {
+                    // 總和太大，右指標左移
+                    statusText.textContent = `總和 ${currentSum} > 目標 ${targetValue}`;
+                    subStatus.textContent = "總和太大，右指標 (Right) 左移以減小數值";
+
+                    // 淡化被排除的元素
+                    elements[right].classList.add('dimmed');
+                    right--;
+                    await sleep(ANIMATION_SPEED);
+                }
+            }
+
+            // 迴圈結束未找到 (在此腳本中不會發生，因為有強制解，但為完整性保留)
+            statusText.textContent = "未找到符合的組合";
+            subStatus.textContent = "指標交會，結束搜尋";
+            await sleep(3000);
+        }
+
+        // 主迴圈
+        async function runLoop() {
+            while (true) {
+                initDisplay();
+                await sleep(500);
+
+                await twoSumAnimation();
+
+                statusText.textContent = "演示結束，3秒後重新開始...";
+                subStatus.textContent = "";
+                await sleep(3000);
+            }
+        }
+
+        // 啟動
+        window.onload = () => {
+            runLoop();
+        };
+
+    </script>
+</body>
+
+</html>

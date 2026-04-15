@@ -1,0 +1,116 @@
+<div class="content-area">
+    <h1>滑動視窗 (Sliding Window) 演算法教學</h1>
+
+    <h2>1. 簡介</h2>
+    <p>滑動視窗（Sliding Window）是同向雙指標（Two Pointers）的一種進階應用策略。它的概念是維護一個在資料（陣列或字串）上移動的「視窗」，透過左右邊界的移動來框出一段<strong>連續</strong>的區間。</p>
+    <p>根據問題需求，滑動視窗可以分為兩種：</p>
+    <ol>
+        <li><strong>固定長度視窗 (Fixed-size Window)</strong>：視窗大小不變，整體向右滑動。</li>
+        <li><strong>可變長度視窗 (Variable-size Window)</strong>：視窗大小會根據條件動態伸縮（右邊界擴張、左邊界收縮）。</li>
+    </ol>
+    <p>其最大優勢在於避免重複計算重疊區間的元素，將時間複雜度從 $O(N^2)$ 降低至 $O(N)$。</p>
+
+    <h2>2. 生活案例比喻</h2>
+    <ul>
+        <li><strong>固定長度視窗 - 計算一週平均氣溫</strong>：假設你有 30 天的每日氣溫紀錄，你想找出「連續 7 天」總和最高的區間。你不需要每次都重新加總 7 天的氣溫。當視窗從「第 1~7 天」滑動到「第 2~8 天」時，你只需要將原本的總和「扣掉第 1 天，加上第 8 天」即可。</li>
+        <li><strong>可變長度視窗 - 吃到飽餐廳拿食物</strong>：你拿著一個盤子在夾菜，規定是「總熱量不能超過 1000 大卡」。你一路往下夾（右邊界擴張），當夾到某一道菜發現總熱量爆表時，你就必須從盤子裡「最先夾的菜」開始拿掉（左邊界收縮），直到熱量再次低於 1000 大卡，然後才能繼續往下夾新的菜。</li>
+    </ul>
+
+    <h2>3. 演算法運作步驟 <span style="font-size: 0.8em; color: #666;">(以可變長度視窗為例)</span></h2>
+    <p>假設要在陣列 <code>arr</code> 中，尋找「總和不超過 <code>target</code> 的<strong>最長連續子陣列</strong>長度」：</p>
+    <ol>
+        <li>初始化兩個指標 <code>left = 0</code> 和 <code>right = 0</code>，以及用於記錄視窗狀態的變數（如 <code>current_sum = 0</code>）與結果 <code>max_len = 0</code>。</li>
+        <li>當 <code>right &lt; 陣列長度</code> 時，執行以下步驟：
+            <ul>
+                <li><strong>擴張視窗</strong>：將 <code>arr[right]</code> 加入視窗狀態（<code>current_sum += arr[right]</code>）。</li>
+                <li><strong>檢查條件與收縮視窗</strong>：當視窗狀態不符合條件（<code>current_sum &gt; target</code>）時，不斷將 <code>arr[left]</code> 移出視窗（<code>current_sum -= arr[left]</code>），並將 <code>left</code> 往右移 (<code>left += 1</code>)，直到視窗重新符合條件。</li>
+                <li><strong>更新結果</strong>：確認視窗符合條件後，更新目前的最大長度（<code>max_len = max(max_len, right - left + 1)</code>）。</li>
+                <li>擴張準備：將 <code>right</code> 往右移 (<code>right += 1</code>)。</li>
+            </ul>
+        </li>
+        <li>走訪完成後，回傳 <code>max_len</code>。</li>
+    </ol>
+
+    <!-- Animation Embed -->
+    <div style="margin: 2rem 0; text-align: center;">
+        <iframe src="content/ch3/animation/sliding_window.html" width="100%" height="500px"
+            style="border: 3px solid black; border-radius: 6px; box-shadow: 4px 4px 0px rgba(0,0,0,1);"></iframe>
+        <p style="color: #666; font-size: 0.9em; margin-top: 0.5rem;">可變長度滑動視窗動畫展示</p>
+    </div>
+
+    <h2>4. 程式碼實作</h2>
+    <h3>Python 實作範例 (可變長度視窗)</h3>
+    <pre><code class="language-python">def longest_subarray_sum_at_most_target(arr, target):
+    """
+    可變長度滑動視窗：尋找總和 <= target 的最長連續子陣列長度
+    """
+    left = 0
+    current_sum = 0
+    max_len = 0
+    
+    # right 指標負責擴張視窗
+    for right in range(len(arr)):
+        current_sum += arr[right]  # 將新元素加入視窗
+        
+        # 若視窗內總和超過 target，left 指標開始收縮視窗
+        while current_sum &gt; target and left &lt;= right:
+            current_sum -= arr[left]  # 將最左邊的元素移出視窗
+            left += 1                 # 縮小視窗範圍
+            
+        # 此時視窗內的總和必定 <= target，更新最大長度
+        max_len = max(max_len, right - left + 1)
+        
+    return max_len
+
+# 測試區塊
+data = [3, 1, 2, 7, 4, 2, 1, 1, 5]
+target_value = 8
+
+result = longest_subarray_sum_at_most_target(data, target_value)
+print(f"總和不超過 {target_value} 的最長連續子陣列長度為: {result}")</code></pre>
+
+    <h2>5. 複雜度分析</h2>
+    <ul>
+        <li><strong>時間複雜度 (Time Complexity)</strong>：
+            <ul>
+                <li>$O(N)$。雖然程式碼中有 <code>for</code> 迴圈包著 <code>while</code> 迴圈，但陣列中的每個元素最多只會被 <code>right</code> 指標加入視窗一次，也最多只會被 <code>left</code> 指標移出視窗一次。指標只進不退，因此總操作次數約為 $2N$，複雜度為 $O(N)$。</li>
+            </ul>
+        </li>
+        <li><strong>空間複雜度 (Space Complexity)</strong>：
+            <ul>
+                <li>$O(1)$。若只計算總和或長度，僅需常數個變數記錄狀態。若題目要求記錄字元出現次數，可能需要 $O(K)$ 的雜湊表 (Hash Table) 空間（$K$ 為字元集大小）。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>6. 特性總結與適用時機</h2>
+    <ul>
+        <li><strong>關鍵字辨識</strong>：當題目出現<strong>「連續子陣列 (Contiguous Subarray)」</strong>或<strong>「子字串 (Substring)」</strong>，並且要求尋找<strong>「最長 (Longest) / 最短 (Shortest)」</strong>或<strong>「最大 (Maximum) / 最小 (Minimum)」</strong>時，極大機率是滑動視窗題型。</li>
+        <li><strong>APCS 考試應用</strong>：
+            <ul>
+                <li>滑動視窗是 APCS <strong>第 3 題</strong> 極度頻繁出現的題型。遇到這類題目若使用雙層迴圈暴力解必定會 TLE，必須熟練掌握 <code>left</code> 與 <code>right</code> 指標的維護方式，以及視窗內狀態（如總和、計數器）的更新時機。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>7. LeetCode 實戰練習</h2>
+    <ul>
+        <li><strong>基礎題 (Fixed-size Window)</strong>：
+            <ul>
+                <li><a href="https://leetcode.com/problems/maximum-average-subarray-i/" target="_blank">643. Maximum Average Subarray I</a>：固定長度 $k$ 的視窗，求最大平均值。</li>
+            </ul>
+        </li>
+        <li><strong>進階應用題 (Variable-size Window)</strong>：
+            <ul>
+                <li><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank">3. Longest Substring Without Repeating Characters</a>：必寫經典題。利用 Set 或 Dictionary 維護視窗內無重複字元的狀態。</li>
+                <li><a href="https://leetcode.com/problems/minimum-size-subarray-sum/" target="_blank">209. Minimum Size Subarray Sum</a>：求總和 $\ge target$ 的最短連續子陣列。</li>
+                <li><a href="https://leetcode.com/problems/longest-repeating-character-replacement/" target="_blank">424. Longest Repeating Character Replacement</a>：視窗內結合字典計數的高頻題。</li>
+            </ul>
+        </li>
+        <li><strong>困難題 (Hard)</strong>：
+            <ul>
+                <li><a href="https://leetcode.com/problems/minimum-window-substring/" target="_blank">76. Minimum Window Substring</a>：滑動視窗的終極考驗，要求在字串 $S$ 中找到包含字串 $T$ 所有字元的最短子字串。</li>
+            </ul>
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>滑動視窗 (Sliding Window) 動畫</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* 陣列元素樣式 */
+        .array-box {
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        /* 排除的元素 (淡化) */
+        .dimmed {
+            opacity: 0.3;
+            background-color: #e5e7eb !important;
+            border-color: #d1d5db !important;
+            color: #9ca3af !important;
+            transform: scale(0.95);
+        }
+
+        /* 視窗狀態顏色 */
+        .window-evaluating {
+            background-color: #fef3c7 !important;
+            /* yellow-100 */
+            border-color: #f59e0b !important;
+            /* yellow-500 */
+            color: #92400e !important;
+            transform: scale(1.05);
+        }
+
+        .window-invalid {
+            background-color: #fee2e2 !important;
+            /* red-100 */
+            border-color: #ef4444 !important;
+            /* red-500 */
+            color: #991b1b !important;
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+        }
+
+        .window-valid {
+            background-color: #d1fae5 !important;
+            /* green-100 */
+            border-color: #10b981 !important;
+            /* green-500 */
+            color: #065f46 !important;
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+            z-index: 5;
+        }
+
+        /* 指標標籤 (L/R) */
+        .ptr-label {
+            position: absolute;
+            font-weight: bold;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: white;
+            white-space: nowrap;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+
+        .ptr-label-left {
+            top: -28px;
+            background-color: #3b82f6;
+            /* Blue */
+        }
+
+        .ptr-label-right {
+            bottom: -28px;
+            background-color: #8b5cf6;
+            /* Purple */
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen p-4 text-gray-800">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-4xl border border-gray-100">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">滑動視窗 (Sliding Window)</h1>
+        <p class="text-center text-gray-500 mb-6">尋找總和 &le; Target 的最長連續子陣列</p>
+
+        <!-- 狀態資訊面板 -->
+        <div class="flex flex-col items-center mb-10 bg-gray-50 p-6 rounded-lg border border-gray-200 justify-center">
+            <div class="flex space-x-12 mb-4 text-lg">
+                <div>
+                    <span class="text-gray-500">目標和 (Target):</span>
+                    <span id="target-display" class="text-3xl font-bold text-gray-800 ml-2">8</span>
+                </div>
+                <div>
+                    <span class="text-gray-500">目前總和:</span>
+                    <span id="current-sum" class="text-3xl font-bold text-indigo-600 ml-2">0</span>
+                </div>
+                <div>
+                    <span class="text-gray-500">最大長度:</span>
+                    <span id="max-len" class="text-3xl font-bold text-green-600 ml-2">0</span>
+                </div>
+            </div>
+
+            <div id="status-text" class="text-xl font-bold text-gray-700 h-8">
+                準備開始...
+            </div>
+        </div>
+
+        <!-- 視覺化區域 -->
+        <div class="relative mb-12">
+            <!-- 陣列盒子容器 -->
+            <div id="array-container" class="flex justify-center space-x-3 mt-8 mb-8">
+                <!-- 由 JS 生成 -->
+            </div>
+        </div>
+
+        <!-- 圖例 -->
+        <div class="flex justify-center space-x-6 text-sm text-gray-600 mt-4 border-t pt-4">
+            <div class="flex items-center"><span class="w-3 h-3 bg-blue-500 rounded-sm mr-2"></span>左指標 (Left)</div>
+            <div class="flex items-center"><span class="w-3 h-3 bg-purple-500 rounded-sm mr-2"></span>右指標 (Right)</div>
+            <div class="flex items-center"><span
+                    class="w-3 h-3 bg-yellow-400 border border-yellow-500 rounded-sm mr-2"></span>加入視窗</div>
+            <div class="flex items-center"><span
+                    class="w-3 h-3 bg-red-200 border border-red-500 rounded-sm mr-2"></span>總和超出</div>
+            <div class="flex items-center"><span
+                    class="w-3 h-3 bg-green-200 border border-green-500 rounded-sm mr-2"></span>符合條件</div>
+        </div>
+    </div>
+
+    <script>
+        // 設定參數 (對應 Python 測試區塊)
+        const dataArray = [3, 1, 2, 7, 4, 2, 1, 1, 5];
+        const targetValue = 8;
+        const ARRAY_SIZE = dataArray.length;
+        const ANIMATION_SPEED = 1200; // 步驟間隔毫秒
+
+        // DOM 元素
+        const container = document.getElementById('array-container');
+        const currentSumDisplay = document.getElementById('current-sum');
+        const maxLenDisplay = document.getElementById('max-len');
+        const statusText = document.getElementById('status-text');
+
+        let elements = []; // 儲存 DOM 元素
+
+        // 工具：暫停
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // 初始化畫面
+        function initDisplay() {
+            container.innerHTML = '';
+            elements = [];
+
+            currentSumDisplay.textContent = '0';
+            maxLenDisplay.textContent = '0';
+            statusText.textContent = "初始化陣列...";
+
+            // 渲染陣列
+            dataArray.forEach((val, index) => {
+                const box = document.createElement('div');
+                box.className = 'array-box flex items-center justify-center w-14 h-14 bg-white border-2 border-gray-300 rounded-lg font-bold text-gray-700 text-xl shadow-sm dimmed';
+                box.textContent = val;
+
+                // 左指標標籤
+                const labelLeft = document.createElement('div');
+                labelLeft.className = 'ptr-label ptr-label-left hidden';
+                labelLeft.textContent = 'Left';
+                box.appendChild(labelLeft);
+
+                // 右指標標籤
+                const labelRight = document.createElement('div');
+                labelRight.className = 'ptr-label ptr-label-right hidden';
+                labelRight.textContent = 'Right';
+                box.appendChild(labelRight);
+
+                container.appendChild(box);
+                elements.push(box);
+            });
+        }
+
+        // 更新視覺狀態
+        function updateVisuals(left, right, currentSum, maxLen, state) {
+            currentSumDisplay.textContent = currentSum;
+            maxLenDisplay.textContent = maxLen;
+
+            elements.forEach((el, index) => {
+                // 重置基本樣式
+                el.className = 'array-box flex items-center justify-center w-14 h-14 bg-white border-2 border-gray-300 rounded-lg font-bold text-gray-700 text-xl shadow-sm';
+
+                const lLabel = el.querySelector('.ptr-label-left');
+                const rLabel = el.querySelector('.ptr-label-right');
+                lLabel.classList.add('hidden');
+                rLabel.classList.add('hidden');
+
+                // 標示指標
+                if (index === left && left < ARRAY_SIZE) {
+                    lLabel.classList.remove('hidden');
+                }
+                if (index === right && right >= 0 && right < ARRAY_SIZE) {
+                    rLabel.classList.remove('hidden');
+                }
+
+                // 標示視窗範圍與狀態
+                if (index >= left && index <= right) {
+                    if (state === 'valid') {
+                        el.classList.add('window-valid');
+                    } else if (state === 'invalid') {
+                        el.classList.add('window-invalid');
+                    } else {
+                        el.classList.add('window-evaluating');
+                    }
+                } else {
+                    // 視窗外的元素淡化處理
+                    el.classList.add('dimmed');
+                }
+            });
+        }
+
+        // 動畫主邏輯 (對應 Python 程式碼)
+        async function slidingWindowAnimation() {
+            let left = 0;
+            let current_sum = 0;
+            let max_len = 0;
+
+            await sleep(1000);
+
+            for (let right = 0; right < ARRAY_SIZE; right++) {
+                // 1. 將新元素加入視窗
+                current_sum += dataArray[right];
+                updateVisuals(left, right, current_sum, max_len, 'evaluating');
+                statusText.innerHTML = `右指標擴張，加入 <span class="text-blue-600">${dataArray[right]}</span>`;
+                await sleep(ANIMATION_SPEED);
+
+                // 2. 若視窗內總和超過 target，left 指標開始收縮視窗
+                while (current_sum > targetValue && left <= right) {
+                    updateVisuals(left, right, current_sum, max_len, 'invalid');
+                    statusText.innerHTML = `總和 ${current_sum} > ${targetValue}，左指標準備收縮視窗`;
+                    await sleep(ANIMATION_SPEED);
+
+                    current_sum -= dataArray[left];
+                    left += 1;
+
+                    if (left <= right) {
+                        updateVisuals(left, right, current_sum, max_len, 'evaluating');
+                        statusText.innerHTML = `移除左側元素 <span class="text-red-500">${dataArray[left - 1]}</span>，當前總和: ${current_sum}`;
+                        await sleep(ANIMATION_SPEED);
+                    }
+                }
+
+                // 3. 視窗總和符合條件，判斷是否更新最大長度
+                updateVisuals(left, right, current_sum, max_len, 'valid');
+                const current_window_len = right - left + 1;
+
+                if (current_window_len > max_len) {
+                    max_len = current_window_len;
+                    updateVisuals(left, right, current_sum, max_len, 'valid');
+                    statusText.innerHTML = `符合條件，更新最大長度為 <span class="text-green-600">${max_len}</span>`;
+                } else {
+                    statusText.innerHTML = `符合條件，最大長度維持 ${max_len}`;
+                }
+                await sleep(ANIMATION_SPEED);
+            }
+
+            // 結束狀態
+            updateVisuals(left, ARRAY_SIZE - 1, current_sum, max_len, 'dimmed');
+            currentSumDisplay.textContent = '-';
+            statusText.textContent = `遍歷完成！最長連續子陣列長度為: ${max_len}`;
+            await sleep(5000);
+        }
+
+        // 主迴圈
+        async function runLoop() {
+            while (true) {
+                initDisplay();
+                await sleep(500);
+
+                await slidingWindowAnimation();
+
+                statusText.textContent = "演示結束，3秒後重新開始...";
+                await sleep(3000);
+            }
+        }
+
+        // 啟動
+        window.onload = () => {
+            runLoop();
+        };
+
+    </script>
+</body>
+
+</html>
