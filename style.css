@@ -239,6 +239,28 @@ main {
     color: #333;
 }
 
+.content-area table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    border: 2px solid black;
+    box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+    background: white;
+}
+
+.content-area th, .content-area td {
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.content-area th {
+    background-color: var(--lego-yellow);
+    color: black;
+    border-bottom: 2px solid black;
+    font-weight: bold;
+}
+
 .content-area code {
     background-color: var(--lego-gray);
     padding: 0.2rem 0.4rem;

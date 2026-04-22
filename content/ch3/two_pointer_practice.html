@@ -1,0 +1,54 @@
+<div class="content-area">
+    <h1>練習題：盛最多水的容器 (Container With Most Water)</h1>
+
+    <h2>問題描述</h2>
+    <p>給定一個長度為 $n$ 的整數陣列 <code>height</code>。在座標平面上有 $n$ 條垂直線，第 $i$ 條線的兩個端點分別為 $(i, 0)$ 與 $(i, height[i])$。</p>
+    <p>請從中找出兩條線，使其與 $x$ 軸共同構成的容器可以盛裝最多的水。</p>
+    <p><strong>注意：</strong>你不能傾斜容器，且容器的寬度為兩條線之間的索引距離。</p>
+
+    <h2>輸入範例</h2>
+    <pre><code class="language-plaintext">height = [1, 8, 6, 2, 5, 4, 8, 3, 7]</code></pre>
+
+    <h2>輸出範例</h2>
+    <pre><code class="language-plaintext">49</code></pre>
+
+    <h2>範例解釋</h2>
+    <p>選取索引 $1$（高度 $8$）與索引 $8$（高度 $7$）的兩條線。</p>
+    <ul>
+        <li>寬度：$8 - 1 = 7$</li>
+        <li>高度：$\min(8, 7) = 7$</li>
+        <li>面積：$7 \times 7 = 49$</li>
+    </ul>
+
+    <h2>測試資料</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>測資編號</th>
+                <th>輸入 (height)</th>
+                <th>預期輸出</th>
+                <th>說明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>[1, 1]</td>
+                <td>1</td>
+                <td>最小長度陣列，面積為 $1 \times 1 = 1$。</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>[5, 5, 5, 5, 5]</td>
+                <td>20</td>
+                <td>高度均等時，選擇最寬的兩端索引 ($0$ 與 $4$ )，面積為 $4 \times 5 = 20$。</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>[10, 2, 1, 1, 2, 10]</td>
+                <td>50</td>
+                <td>兩端點極高但中間低矮，最大面積由首尾兩條線構成，面積為 $5 \times 10 = 50$。</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

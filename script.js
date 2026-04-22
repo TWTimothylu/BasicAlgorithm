@@ -22,6 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
             links.forEach(l => l.classList.remove('active'));
             link.classList.add('active');
 
+            // Handle sub-menus display
+            document.querySelectorAll('.sub-menu').forEach(menu => menu.style.display = 'none');
+            if (link.nextElementSibling && link.nextElementSibling.classList.contains('sub-menu')) {
+                link.nextElementSibling.style.display = 'block';
+            }
+            if (link.closest('.sub-menu')) {
+                link.closest('.sub-menu').style.display = 'block';
+                // Keep parent link active-looking if desired, but default active styles apply to the sub-link
+            }
+
             const url = link.getAttribute('href');
             if (url && url !== '#') {
                 loadPage(url);
