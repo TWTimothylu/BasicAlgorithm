@@ -1,0 +1,74 @@
+<div class="content-area">
+    <h1>練習題：長度最小的子陣列 (Minimum Size Subarray Sum)</h1>
+
+    <h2>問題描述</h2>
+    <p>給定一個含有 $n$ 個正整數的陣列 <code>nums</code> 和一個正整數 <code>target</code>。找出該陣列中滿足其和 $\ge target$ 的任意連續子陣列，並回傳其最小長度。如果不存在符合條件的子陣列，回傳 $0$。</p>
+
+    <h2>輸入範例</h2>
+    <pre><code class="language-plaintext">target = 7, nums = [2, 3, 1, 2, 4, 3]</code></pre>
+
+    <h2>輸出範例</h2>
+    <pre><code class="language-plaintext">2</code></pre>
+
+    <h2>範例解釋</h2>
+    <p>子陣列 <code>[4, 3]</code> 是該條件下長度最小的連續子陣列（長度為 $2$）。</p>
+
+    <h2>補充測資</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>測資編號</th>
+                <th>輸入 (target, nums)</th>
+                <th>預期輸出</th>
+                <th>說明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>4, [1, 4, 4]</td>
+                <td>1</td>
+                <td>元素本身即等於 <code>target</code>。</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>11, [1, 1, 1, 1]</td>
+                <td>0</td>
+                <td>總和未達 <code>target</code>，回傳 $0$。</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>11, [1, 2, 3, 4, 5]</td>
+                <td>3</td>
+                <td>子陣列 <code>[3, 4, 5]</code> 滿足條件且長度最小。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <details style="margin-top: 2rem;">
+        <summary>實作提示 (同向指標 / 滑動視窗思路)</summary>
+        <div style="padding: 1rem;">
+            <p>這類題目指標均由左向右移動，但並非固定倍數關係：</p>
+            <ol>
+                <li><strong>初始化：</strong><code>left = 0</code>，<code>right = 0</code>，當前窗口總和 <code>current_sum = 0</code>，最小長度 <code>min_len = float('inf')</code>。</li>
+                <li><strong>擴展窗口：</strong>移動 <code>right</code> 指標，將 <code>nums[right]</code> 加入 <code>current_sum</code>。</li>
+                <li><strong>收縮窗口：</strong>當 <code>current_sum >= target</code> 時，嘗試縮小窗口以尋找更短的可能：
+                    <ul>
+                        <li>更新 <code>min_len = min(min_len, right - left + 1)</code>。</li>
+                        <li>從 <code>current_sum</code> 中減去 <code>nums[left]</code>。</li>
+                        <li>將 <code>left</code> 指標向右移動一步（<code>left += 1</code>）。</li>
+                        <li>重複步驟 3 直到 <code>current_sum &lt; target</code>。</li>
+                    </ul>
+                </li>
+                <li><strong>繼續遍歷：</strong>重複步驟 2，直到 <code>right</code> 到達陣列末尾。</li>
+                <li><strong>結果判斷：</strong>若 <code>min_len</code> 仍為初始值，代表無解，回傳 $0$；否則回傳 <code>min_len</code>。</li>
+            </ol>
+            
+            <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--lego-blue); border-bottom: 2px solid black; display: inline-block; padding-right: 1rem;">複雜度分析</h3>
+            <ul>
+                <li><strong>時間複雜度：</strong>$O(n)$。雖然有巢狀迴圈，但每個元素最多被 <code>left</code> 和 <code>right</code> 各訪問一次。</li>
+                <li><strong>空間複雜度：</strong>$O(1)$。</li>
+            </ul>
+        </div>
+    </details>
+</div>
